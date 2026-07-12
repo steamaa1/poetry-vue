@@ -196,6 +196,7 @@ async function setPoemLang(nextLang) {
 }
 
 async function changeUiLang() {
+  document.documentElement.lang = uiLang.value
   poemLang.value = uiLang.value
   dynasty.value = ''
   type.value = ''
@@ -223,11 +224,14 @@ async function loadFilters() {
   } catch (_) {}
 }
 
-onMounted(() => Promise.all([randomPoem(), loadFilters()]))
+onMounted(() => {
+  document.documentElement.lang = uiLang.value
+  return Promise.all([randomPoem(), loadFilters()])
+})
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :lang="uiLang">
     <header class="nav wrap">
       <a class="brand" href="#" @click.prevent="randomPoem">
         <span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span>
@@ -267,7 +271,7 @@ onMounted(() => Promise.all([randomPoem(), loadFilters()]))
         <div class="poem-stage">
           <span class="sun"></span><span class="mountain m1"></span><span class="mountain m2"></span>
           <div class="poem-column">
-            <article class="poem-card">
+            <article class="poem-card" :lang="poemLang">
               <div v-if="loading" class="state"><RotateCw class="spin" :size="28"/><span>{{ m.finding }}</span></div>
               <div v-else-if="error && !poem" class="state"><span>{{ error }}</span><button @click="randomPoem">{{ m.retry }}</button></div>
               <template v-else-if="poem">
@@ -304,13 +308,13 @@ onMounted(() => Promise.all([randomPoem(), loadFilters()]))
 
           <div v-if="searched" class="results">
             <div class="results-head"><b>{{ searchHeading }}</b><button @click="searched=false"><X :size="18"/> {{ m.collapse }}</button></div>
-            <div v-if="!searching && results.length" class="result-grid"><button v-for="p in results.slice(0,12)" :key="p.id" class="result-card" @click="showPoem(p)"><span>{{ p.dynasty?.name }} · {{ p.author?.name }}</span><h3>{{ p.title }}</h3><p>{{ p.content?.slice(0,2).join(' ') }}</p><i>{{ m.openSheet }}</i></button></div>
+            <div v-if="!searching && results.length" class="result-grid" :lang="poemLang"><button v-for="p in results.slice(0,12)" :key="p.id" class="result-card" @click="showPoem(p)"><span>{{ p.dynasty?.name }} · {{ p.author?.name }}</span><h3>{{ p.title }}</h3><p>{{ p.content?.slice(0,2).join(' ') }}</p><i>{{ m.openSheet }}</i></button></div>
             <div v-else-if="!searching" class="empty"><BookOpen :size="34"/><p>{{ searchMessage || m.noResult }}</p></div>
           </div>
         </div>
       </section>
 
-      <section id="favorites" v-if="favorites.length" class="favorites wrap narrow">
+      <section id="favorites" v-if="favorites.length" class="favorites wrap narrow" :lang="poemLang">
         <p class="section-kicker"><Heart :size="16"/> {{ m.favoritesKicker }}</p><h2>{{ m.favoritesTitle }}</h2>
         <div class="fav-row"><button v-for="p in favorites.slice(0,8)" :key="p.id" @click="showPoem(p)"><small>{{p.dynasty?.name}} · {{p.author?.name}}</small><b>{{p.title}}</b></button></div>
       </section>
