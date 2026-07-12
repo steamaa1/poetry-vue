@@ -18,6 +18,13 @@ const zhHant = {
     dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗',
     languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', loadFailed: '詩意暫時走遠了，請稍後重試。',
     switchFailed: '文字切換失敗，請稍後重試。', neighborFailed: '暫時無法返回這首詩箋。',
+    seaNav: '詩海', seaKicker: '萬卷詩海', seaTitle: '一頁風雅，千年文章', seaDesc: '循資料觀詩脈，隨卷帙訪詩人。',
+    statsTab: '資料概覽', poemsTab: '詩海漫遊', authorsTab: '詩人名錄', loadingSea: '正在翻閱詩海…', loadSeaFailed: '詩海暫時起霧，請稍後重試。', reload: '重新載入',
+    statPoems: '收錄詩詞', statAuthors: '詩人雅士', statDynasties: '歷代風華', statTypes: '詩體詞牌',
+    seaPoemsTitle: '詩海漫遊', seaPoemsDesc: '按卷翻閱浩瀚詩篇，點擊任意作品展開詩箋。',
+    authorsTitle: '詩人名錄', authorsDesc: '循名訪古，與萬卷詩篇中的故人重逢。', famousAuthors: '常訪名家', allAuthors: '全部詩人',
+    filterCurrentAuthors: '篩選本頁詩人', noAuthors: '本頁沒有符合條件的詩人。', randomByAuthor: '隨機讀一首', authorProfile: '查詢生平', authorLoading: '正在尋詩…',
+    currentPageOnly: '僅篩選當前頁',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 

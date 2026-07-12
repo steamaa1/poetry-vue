@@ -3,7 +3,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX
 } from 'lucide-vue-next'
 
 const API = ''
@@ -41,6 +41,22 @@ const favorites = ref(JSON.parse(localStorage.getItem('poetry-favorites') || '[]
 const poemHistory = ref([])
 const historyIndex = ref(-1)
 
+// 诗海板块按标签懒加载，避免拖慢首屏。
+const seaTab = ref('stats')
+const seaLoaded = ref({ stats: false, poems: false, authors: false })
+const seaLoading = ref({ stats: false, poems: false, authors: false })
+const seaErrors = ref({ stats: '', poems: '', authors: '' })
+const stats = ref(null)
+const seaPoems = ref([])
+const seaPoemPage = ref(1)
+const seaPoemHasMore = ref(false)
+const seaAuthors = ref([])
+const authorPage = ref(1)
+const authorHasMore = ref(false)
+const authorFilter = ref('')
+const authorReading = ref('')
+const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
+
 // 简体中文为默认语言，直接嵌入组件。
 const zhHans = {
     brand: '诗笺', slogan: '一卷诗心，半生清欢', today: '今日一诗', explore: '寻诗', favorite: '收藏',
@@ -60,6 +76,13 @@ const zhHans = {
     dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗',
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
+    seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
+    statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
+    statPoems: '收录诗词', statAuthors: '诗人雅士', statDynasties: '历代风华', statTypes: '诗体词牌',
+    seaPoemsTitle: '诗海漫游', seaPoemsDesc: '按卷翻阅浩瀚诗篇，点击任意作品展开诗笺。',
+    authorsTitle: '诗人名录', authorsDesc: '循名访古，与万卷诗篇中的故人重逢。', famousAuthors: '常访名家', allAuthors: '全部诗人',
+    filterCurrentAuthors: '筛选本页诗人', noAuthors: '本页没有符合条件的诗人。', randomByAuthor: '随机读一首', authorProfile: '查询生平', authorLoading: '正在寻诗…',
+    currentPageOnly: '仅筛选当前页',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 
@@ -82,6 +105,14 @@ const searchHeading = computed(() => {
 const quickWords = computed(() => uiLang.value === 'zh-Hant'
   ? ['明月光', '思故鄉', '春風裡', '長安城', '李太白']
   : ['明月光', '思故乡', '春风里', '长安城', '李太白'])
+
+const filteredAuthors = computed(() => {
+  const keyword = authorFilter.value.trim().toLocaleLowerCase()
+  if (!keyword) return seaAuthors.value
+  return seaAuthors.value.filter(author =>
+    `${author.name || ''} ${author.dynasty?.name || ''}`.toLocaleLowerCase().includes(keyword)
+  )
+})
 
 function highlightedParts(text) {
   const source = String(text || '')
@@ -396,6 +427,12 @@ async function setPoemLang(nextLang) {
   try {
     await loadPoemById(poem.value.id)
     if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
+    for (const tab of ['stats', 'poems', 'authors']) {
+      if (seaLoaded.value[tab]) {
+        seaLoaded.value = { ...seaLoaded.value, [tab]: false }
+        await loadSeaTab(tab)
+      }
+    }
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
@@ -419,11 +456,96 @@ async function changeUiLang() {
       poem.value?.id ? loadPoemById(poem.value.id) : randomPoem()
     ])
     if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
+    for (const tab of ['stats', 'poems', 'authors']) {
+      if (seaLoaded.value[tab]) {
+        seaLoaded.value = { ...seaLoaded.value, [tab]: false }
+        await loadSeaTab(tab)
+      }
+    }
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
     loading.value = false
   }
+}
+
+async function openSeaTab(tab) {
+  seaTab.value = tab
+  if (!seaLoaded.value[tab]) await loadSeaTab(tab)
+}
+
+async function loadSeaTab(tab, force = false) {
+  if (seaLoading.value[tab] || (seaLoaded.value[tab] && !force)) return
+  seaLoading.value = { ...seaLoading.value, [tab]: true }
+  seaErrors.value = { ...seaErrors.value, [tab]: '' }
+  try {
+    if (tab === 'stats') await loadStats()
+    if (tab === 'poems') await loadSeaPoems()
+    if (tab === 'authors') await loadAuthors()
+    seaLoaded.value = { ...seaLoaded.value, [tab]: true }
+  } catch (_) {
+    seaErrors.value = { ...seaErrors.value, [tab]: m.value.loadSeaFailed }
+  } finally {
+    seaLoading.value = { ...seaLoading.value, [tab]: false }
+  }
+}
+
+async function loadStats() {
+  const data = await getJSON('/api/stats')
+  stats.value = data?.data || null
+}
+
+async function loadSeaPoems() {
+  const data = await getJSON(`/api/poems?page=${seaPoemPage.value}&pageSize=12`)
+  seaPoems.value = Array.isArray(data?.data) ? data.data : []
+  seaPoemHasMore.value = Boolean(data?.pagination?.hasMore)
+}
+
+async function changeSeaPoemPage(step) {
+  const target = seaPoemPage.value + step
+  if (target < 1 || (step > 0 && !seaPoemHasMore.value) || seaLoading.value.poems) return
+  seaPoemPage.value = target
+  seaLoaded.value = { ...seaLoaded.value, poems: false }
+  await loadSeaTab('poems')
+  await nextTick()
+  document.querySelector('.sea-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+async function loadAuthors() {
+  const data = await getJSON(`/api/authors?page=${authorPage.value}&pageSize=24`)
+  seaAuthors.value = Array.isArray(data?.data) ? data.data : []
+  authorHasMore.value = Boolean(data?.pagination?.hasMore)
+}
+
+async function changeAuthorPage(step) {
+  const target = authorPage.value + step
+  if (target < 1 || (step > 0 && !authorHasMore.value) || seaLoading.value.authors) return
+  authorPage.value = target
+  authorFilter.value = ''
+  seaLoaded.value = { ...seaLoaded.value, authors: false }
+  await loadSeaTab('authors')
+  await nextTick()
+  document.querySelector('.sea-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+async function readAuthorPoem(authorName) {
+  if (!authorName || authorReading.value) return
+  authorReading.value = authorName
+  try {
+    const data = await getJSON(`/api/poems/random?author=${encodeURIComponent(authorName)}`)
+    recordPoem(data.data)
+    await nextTick()
+    poemStage.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } catch (_) {
+    seaErrors.value = { ...seaErrors.value, authors: m.value.loadSeaFailed }
+  } finally {
+    authorReading.value = ''
+  }
+}
+
+function searchAuthorProfile(authorName) {
+  const suffix = uiLang.value === 'zh-Hant' ? '生平 代表作 詩詞' : '生平 代表作 诗词'
+  window.open(`https://www.bing.com/search?q=${encodeURIComponent(`${authorName} ${suffix}`)}`, '_blank', 'noopener,noreferrer')
 }
 
 async function loadFilters() {
@@ -465,7 +587,7 @@ onMounted(() => {
   document.documentElement.lang = uiLang.value
   localStorage.setItem('poetry-ui-lang', uiLang.value)
   localStorage.setItem('poetry-poem-lang', poemLang.value)
-  return Promise.all([loadInitialPoem(), loadFilters()])
+  return Promise.all([loadInitialPoem(), loadFilters()]).then(() => loadSeaTab('stats'))
 })
 </script>
 
@@ -479,6 +601,7 @@ onMounted(() => {
       <nav>
         <a class="active" href="#today">{{ m.today }}</a>
         <a href="#explore">{{ m.explore }}</a>
+        <a href="#sea" @click="openSeaTab(seaTab)">{{ m.seaNav }}</a>
         <a href="#favorites">{{ m.favorite }} <i v-if="favorites.length">{{ favorites.length }}</i></a>
       </nav>
       <div class="nav-actions">
@@ -561,6 +684,73 @@ onMounted(() => {
               <span>{{ m.pageLabel.replace('{page}', searchPage) }}</span>
               <button @click="changeSearchPage(1)" :disabled="!searchHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sea" class="sea-section">
+        <div class="wrap narrow">
+          <p class="section-kicker"><Waves :size="16"/> {{ m.seaKicker }}</p>
+          <h2>{{ m.seaTitle }}</h2>
+          <p class="sea-intro">{{ m.seaDesc }}</p>
+
+          <div class="sea-tabs" role="tablist">
+            <button :class="{active:seaTab === 'stats'}" @click="openSeaTab('stats')"><BarChart3 :size="17"/> {{ m.statsTab }}</button>
+            <button :class="{active:seaTab === 'poems'}" @click="openSeaTab('poems')"><BookOpen :size="17"/> {{ m.poemsTab }}</button>
+            <button :class="{active:seaTab === 'authors'}" @click="openSeaTab('authors')"><Users :size="17"/> {{ m.authorsTab }}</button>
+          </div>
+
+          <div class="sea-panel" :lang="poemLang">
+            <div v-if="seaLoading[seaTab]" class="sea-state"><RotateCw class="spin" :size="28"/><span>{{ m.loadingSea }}</span></div>
+            <div v-else-if="seaErrors[seaTab]" class="sea-state"><Info :size="28"/><span>{{ seaErrors[seaTab] }}</span><button @click="loadSeaTab(seaTab,true)">{{ m.reload }}</button></div>
+
+            <template v-else-if="seaTab === 'stats' && stats">
+              <div class="stats-grid">
+                <button @click="openSeaTab('poems')"><strong>{{ Number(stats.poems || 0).toLocaleString() }}</strong><span>{{ m.statPoems }}</span><BookOpen :size="19"/></button>
+                <button @click="openSeaTab('authors')"><strong>{{ Number(stats.authors || 0).toLocaleString() }}</strong><span>{{ m.statAuthors }}</span><Users :size="19"/></button>
+                <div><strong>{{ Number(stats.dynasties || 0).toLocaleString() }}</strong><span>{{ m.statDynasties }}</span><Waves :size="19"/></div>
+                <div><strong>{{ Number(stats.types || 0).toLocaleString() }}</strong><span>{{ m.statTypes }}</span><BookOpen :size="19"/></div>
+              </div>
+            </template>
+
+            <template v-else-if="seaTab === 'poems'">
+              <div class="sea-panel-head"><div><h3>{{ m.seaPoemsTitle }}</h3><p>{{ m.seaPoemsDesc }}</p></div><span>{{ m.pageLabel.replace('{page}', seaPoemPage) }}</span></div>
+              <div class="sea-poem-grid">
+                <button v-for="p in seaPoems" :key="p.id" class="sea-poem-card" @click="showPoem(p)">
+                  <span>{{ p.dynasty?.name }} · {{ p.author?.name }} · {{ p.type?.name }}</span>
+                  <h4>{{ p.title }}</h4>
+                  <p>{{ p.content?.slice(0,2).join(' ') }}</p>
+                  <i>{{ m.openSheet }}</i>
+                </button>
+              </div>
+              <div class="search-pagination">
+                <button @click="changeSeaPoemPage(-1)" :disabled="seaPoemPage <= 1"><ChevronLeft :size="17"/> {{ m.searchPrevious }}</button>
+                <span>{{ m.pageLabel.replace('{page}', seaPoemPage) }}</span>
+                <button @click="changeSeaPoemPage(1)" :disabled="!seaPoemHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
+              </div>
+            </template>
+
+            <template v-else-if="seaTab === 'authors'">
+              <div class="sea-panel-head"><div><h3>{{ m.authorsTitle }}</h3><p>{{ m.authorsDesc }}</p></div><span>{{ m.pageLabel.replace('{page}', authorPage) }}</span></div>
+              <h4 class="author-subtitle">{{ m.famousAuthors }}</h4>
+              <div class="famous-authors">
+                <button v-for="name in famousAuthors" :key="name" @click="readAuthorPoem(name)" :disabled="Boolean(authorReading)"><UserRound :size="18"/><b>{{ name }}</b><small>{{ authorReading === name ? m.authorLoading : m.randomByAuthor }}</small></button>
+              </div>
+
+              <div class="author-list-head"><h4>{{ m.allAuthors }}</h4><label><Search :size="16"/><input v-model="authorFilter" :placeholder="m.filterCurrentAuthors"><small>{{ m.currentPageOnly }}</small></label></div>
+              <div v-if="filteredAuthors.length" class="author-grid">
+                <article v-for="authorItem in filteredAuthors" :key="authorItem.id" class="author-card">
+                  <span>{{ authorItem.dynasty?.name || m.poetry }}</span><h4>{{ authorItem.name }}</h4>
+                  <div><button @click="readAuthorPoem(authorItem.name)" :disabled="Boolean(authorReading)"><RotateCw v-if="authorReading === authorItem.name" class="spin" :size="14"/><BookOpen v-else :size="14"/> {{ authorReading === authorItem.name ? m.authorLoading : m.randomByAuthor }}</button><button @click="searchAuthorProfile(authorItem.name)"><ExternalLink :size="14"/> {{ m.authorProfile }}</button></div>
+                </article>
+              </div>
+              <div v-else class="empty"><SearchX :size="32"/><p>{{ m.noAuthors }}</p></div>
+              <div class="search-pagination">
+                <button @click="changeAuthorPage(-1)" :disabled="authorPage <= 1"><ChevronLeft :size="17"/> {{ m.searchPrevious }}</button>
+                <span>{{ m.pageLabel.replace('{page}', authorPage) }}</span>
+                <button @click="changeAuthorPage(1)" :disabled="!authorHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
+              </div>
+            </template>
           </div>
         </div>
       </section>
