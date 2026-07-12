@@ -7,6 +7,7 @@ import {
 } from 'lucide-vue-next'
 
 const API = ''
+const siteHost = window.location.host
 const poem = ref(null)
 const poemStage = ref(null)
 const readingOverlay = ref(null)
@@ -1011,7 +1012,13 @@ onBeforeUnmount(() => {
         <h2>{{ poem.title }}</h2>
         <p class="reading-byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
         <div class="reading-verses"><p v-for="(line,index) in poem.content" :key="index">{{ line }}</p></div>
-        <div class="reading-footer"><span>{{ m.brand }}</span><span>第 {{ poem.id }} {{ m.sheet }}</span></div>
+        <div class="reading-footer">
+          <span class="reading-number">第 {{ poem.id }} {{ m.sheet }}</span>
+          <div class="reading-signature">
+            <span class="reading-seal">{{ poemLang === 'zh-Hant' ? '詩' : '诗' }}</span>
+            <span><b>{{ m.brand }}</b><small>{{ siteHost }}</small></span>
+          </div>
+        </div>
       </div>
     </div>
 

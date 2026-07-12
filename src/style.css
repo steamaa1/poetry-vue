@@ -1023,3 +1023,58 @@ main > section:not(:first-child)::after {
   .reading-close { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); }
   main > section:not(:first-child)::before { width: 88vw; height: 34px; }
 }
+
+/* 全屏阅读右下角品牌签名 */
+.reading-footer {
+  align-items: flex-end;
+}
+.reading-number {
+  padding-bottom: 4px;
+}
+.reading-signature {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+}
+.reading-seal {
+  width: 34px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 2px 4px 2px 3px;
+  background: var(--red);
+  color: #fffaf0;
+  box-shadow: inset 0 0 0 3px var(--red), inset 0 0 0 4px rgba(255,255,255,.3);
+  font-size: 19px;
+}
+.reading-signature > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.reading-signature b {
+  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: .14em;
+  font-weight: 600;
+}
+.reading-signature small {
+  max-width: 240px;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 8px;
+  letter-spacing: .02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media(max-width:540px){
+  .reading-footer { gap: 14px; }
+  .reading-signature { gap: 7px; }
+  .reading-seal { width: 30px; height: 33px; font-size: 17px; }
+  .reading-signature b { font-size: 11px; }
+  .reading-signature small { max-width: 150px; font-size: 7px; }
+  .reading-number { font-size: 8px; }
+}
