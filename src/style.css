@@ -1435,3 +1435,56 @@ main > section:not(:first-child)::after {
 .directory-page-list > button:last-child {
   border-bottom: 0 !important;
 }
+
+/* 移动端底部导航跨浏览器加固：防止半透明底栏透出或覆盖页脚 */
+@media (max-width: 850px) {
+  html {
+    --mobile-nav-base-height: 68px;
+  }
+
+  body {
+    padding-bottom: 0;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+    padding-bottom: var(--mobile-nav-base-height);
+    padding-bottom: calc(var(--mobile-nav-base-height) + constant(safe-area-inset-bottom));
+    padding-bottom: calc(var(--mobile-nav-base-height) + env(safe-area-inset-bottom));
+  }
+
+  .app-shell > footer {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0;
+  }
+
+  .mobile-bottom-nav {
+    min-height: var(--mobile-nav-base-height);
+    height: var(--mobile-nav-base-height);
+    height: calc(var(--mobile-nav-base-height) + constant(safe-area-inset-bottom));
+    height: calc(var(--mobile-nav-base-height) + env(safe-area-inset-bottom));
+    padding: 5px 8px 5px;
+    padding-bottom: calc(5px + constant(safe-area-inset-bottom));
+    padding-bottom: calc(5px + env(safe-area-inset-bottom));
+    background: #faf8f2;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    isolation: isolate;
+    contain: paint;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* 某些 WebView 会错误混合 fixed 元素背景，增加不透明底层兜底。 */
+  .mobile-bottom-nav::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: #faf8f2;
+    pointer-events: none;
+  }
+}
