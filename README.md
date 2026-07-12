@@ -113,7 +113,7 @@ npm run build
 - `src/yaji/main.js`：Vue 挂载入口
 - `src/yaji/YajiApp.vue`：每日一诗、月历与互动页面组件
 - `src/yaji/style.css`：雅集页面样式
-- `src/yaji/locales/zh-Hant.js`：繁体中文语言包
+- `src/locales/zh-Hant.js`：首页与雅集共用的繁体中文语言包（默认导出首页，命名导出雅集）
 
 `vite.config.js` 同时构建 `index.html` 与 `yaji.html`，部署后仍通过 `/yaji.html` 访问。
 

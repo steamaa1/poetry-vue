@@ -5,7 +5,7 @@ import {
   CircleHelp, Copy, ExternalLink, Gamepad2, Github, Heart, Home, ImageDown,
   Info, Languages, Maximize2, Menu, Minimize2, RotateCw, Search, Share2, X
 } from 'lucide-vue-next'
-import zhHant from './locales/zh-Hant.js'
+import { yajiZhHant } from '../locales/zh-Hant.js'
 
 const zhHans = {
   brand: '诗笺', page: '诗趣雅集', slogan: '日课一诗，闲时雅戏', back: '诗笺随阅',
@@ -32,7 +32,7 @@ const savedUiLang = localStorage.getItem('poetry-ui-lang')
 const savedPoemLang = localStorage.getItem('poetry-poem-lang')
 const uiLang = ref(['zh-Hans', 'zh-Hant'].includes(savedUiLang) ? savedUiLang : detectedLang)
 const poemLang = ref(['zh-Hans', 'zh-Hant'].includes(savedPoemLang) ? savedPoemLang : uiLang.value)
-const m = computed(() => uiLang.value === 'zh-Hant' ? { ...zhHans, ...zhHant } : zhHans)
+const m = computed(() => uiLang.value === 'zh-Hant' ? { ...zhHans, ...yajiZhHant } : zhHans)
 
 const today = new Date()
 const todayKey = dateKey(today)
