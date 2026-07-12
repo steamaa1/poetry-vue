@@ -1351,3 +1351,98 @@ main > section:not(:first-child)::after {
 .mobile-future-items { margin-left: 22px; padding-left: 10px; border-left: 1px solid rgba(73,101,90,.2); }
 .mobile-future-items > div { position: relative; }
 .mobile-future-items > div:before { content:""; position:absolute; left:-10px; top:50%; width:8px; height:1px; background:rgba(73,101,90,.2); }
+
+/* 诗趣雅集页面板块 */
+.yaji-section {
+  padding: 90px 0;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(145deg, rgba(73,101,90,.045), rgba(247,244,236,.96) 45%, rgba(168,62,50,.035));
+  scroll-margin-top: 18px;
+}
+.yaji-section > .narrow { text-align: center; }
+.yaji-section .section-kicker { justify-content: center; }
+.yaji-section h2 { margin: 13px 0; font-family:'ZCOOL XiaoWei'; font-size:37px; font-weight:400; }
+.yaji-intro { margin:0 0 34px; color:var(--muted); font-size:14px; }
+
+.daily-poem-panel {
+  scroll-margin-top: 20px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  background: rgba(255,253,247,.78);
+  box-shadow: 0 18px 48px rgba(50,47,38,.08);
+  text-align:left;
+}
+.daily-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+.daily-heading > div { display:flex; flex-direction:column; gap:4px; }
+.daily-heading span { color:var(--red); font-size:10px; letter-spacing:.17em; }
+.daily-heading h3 { margin:0; font-family:'ZCOOL XiaoWei'; font-size:25px; font-weight:400; }
+.daily-heading > small { padding:5px 10px; border:1px solid rgba(168,62,50,.22); color:var(--red); font-size:9px; white-space:nowrap; }
+.daily-state { min-height:230px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:13px; color:var(--muted); }
+.daily-state button { padding:8px 15px; border:1px solid var(--line); background:transparent; }
+.daily-content { min-height:260px; display:grid; grid-template-columns:.8fr 1.35fr; grid-template-rows:1fr auto; gap:22px 36px; align-items:center; padding:32px 8px 4px; }
+.daily-content > div:first-child span { color:var(--red); font-size:10px; }
+.daily-content > div:first-child h3 { margin:12px 0 9px; font-family:'ZCOOL XiaoWei'; font-size:29px; font-weight:400; line-height:1.45; }
+.daily-content > div:first-child p { margin:0; color:var(--muted); font-size:11px; }
+.daily-verses { padding-left:30px; border-left:1px solid var(--line); text-align:center; }
+.daily-verses p { margin:9px 0; font-size:15px; line-height:1.75; letter-spacing:.05em; }
+.daily-content > button { grid-column:1 / 3; justify-self:end; min-height:38px; display:flex; align-items:center; gap:6px; padding:0 15px; border:1px solid rgba(168,62,50,.28); background:transparent; color:var(--red); }
+
+.poetry-games { padding-top:48px; scroll-margin-top:20px; }
+.games-heading { margin-bottom:18px; text-align:left; }
+.games-heading span { color:var(--red); font-size:13px; font-weight:600; letter-spacing:.12em; }
+.games-heading p { margin:6px 0 0; color:var(--muted); font-size:11px; }
+.games-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.games-grid article { position:relative; min-height:205px; padding:25px 20px; border:1px solid var(--line); background:rgba(250,248,242,.62); text-align:left; overflow:hidden; }
+.games-grid article > svg { color:var(--green); }
+.games-grid h3 { margin:18px 0 9px; font-family:'ZCOOL XiaoWei'; font-size:22px; font-weight:400; }
+.games-grid p { margin:0; color:var(--muted); font-size:11px; line-height:1.8; }
+.games-grid article > span { position:absolute; right:14px; bottom:14px; padding:3px 8px; border:1px solid rgba(168,62,50,.22); color:var(--red); font-size:8px; }
+.app-shell[lang="zh-Hant"] .yaji-section h2,
+.app-shell[lang="zh-Hant"] .daily-heading h3,
+.app-shell[lang="zh-Hant"] .daily-content h3,
+.app-shell[lang="zh-Hant"] .games-grid h3 { font-family:'Noto Serif TC',serif; font-weight:600; }
+
+/* 目录中的雅集页面子目录改为可点击项 */
+.directory-page-list > button,
+.mobile-page-list > button {
+  position:relative;
+  width:100%;
+  min-height:58px;
+  display:grid;
+  grid-template-columns:22px 1fr 16px;
+  align-items:center;
+  gap:9px;
+  padding:8px;
+  border:0;
+  border-bottom:1px solid rgba(45,47,41,.07);
+  background:transparent;
+  color:var(--green);
+  text-align:left;
+}
+.directory-page-list > button:before,
+.mobile-page-list > button:before { content:""; position:absolute; left:-16px; top:50%; width:12px; height:1px; background:rgba(73,101,90,.2); }
+.directory-page-list span,
+.mobile-page-list span { display:flex; flex-direction:column; gap:3px; }
+.directory-page-list b,
+.mobile-page-list b { color:var(--ink); font-size:12px; }
+.directory-page-list small,
+.mobile-page-list small { color:var(--muted); font-size:9px; line-height:1.5; }
+.directory-page-list > button:hover { background:rgba(168,62,50,.04); color:var(--red); }
+
+@media(max-width:850px){
+  .daily-content { grid-template-columns:1fr; grid-template-rows:auto; }
+  .daily-verses { padding:22px 0 0; border-left:0; border-top:1px solid var(--line); }
+  .daily-content > button { grid-column:1; }
+  .games-grid { grid-template-columns:1fr; }
+  .games-grid article { min-height:155px; }
+}
+@media(max-width:540px){
+  .yaji-section { padding:65px 0; }
+  .yaji-section h2 { font-size:30px; }
+  .daily-poem-panel { padding:18px; }
+  .daily-heading { align-items:flex-start; flex-direction:column; gap:10px; }
+  .daily-content { padding-top:24px; }
+  .daily-content > div:first-child h3 { font-size:24px; }
+  .daily-verses p { font-size:14px; }
+  .daily-content > button { width:100%; justify-content:center; }
+}
