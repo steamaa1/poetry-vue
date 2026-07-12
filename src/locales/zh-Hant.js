@@ -25,6 +25,8 @@ const zhHant = {
     authorsTitle: '詩人名錄', authorsDesc: '循名訪古，與萬卷詩篇中的故人重逢。', famousAuthors: '常訪名家', allAuthors: '全部詩人',
     filterCurrentAuthors: '篩選本頁詩人', noAuthors: '本頁沒有符合條件的詩人。', randomByAuthor: '隨機讀一首', authorProfile: '查詢生平', authorLoading: '正在尋詩…',
     currentPageOnly: '僅篩選當前頁',
+    statsMenuDesc: '縱覽詩詞、作者與朝代', poemsMenuDesc: '按卷瀏覽古典詩詞', authorsMenuDesc: '循名訪問歷代詩人',
+    mobileNavHome: '詩箋', mobileNavSearch: '尋詩', mobileNavSea: '詩海', mobileNavFavorite: '收藏', closeMenu: '關閉選單',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 

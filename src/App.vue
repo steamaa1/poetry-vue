@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2
 } from 'lucide-vue-next'
 
 const API = ''
@@ -56,6 +56,9 @@ const authorHasMore = ref(false)
 const authorFilter = ref('')
 const authorReading = ref('')
 const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
+const seaMenuOpen = ref(false)
+const mobileSeaOpen = ref(false)
+let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
 const zhHans = {
@@ -83,6 +86,8 @@ const zhHans = {
     authorsTitle: '诗人名录', authorsDesc: '循名访古，与万卷诗篇中的故人重逢。', famousAuthors: '常访名家', allAuthors: '全部诗人',
     filterCurrentAuthors: '筛选本页诗人', noAuthors: '本页没有符合条件的诗人。', randomByAuthor: '随机读一首', authorProfile: '查询生平', authorLoading: '正在寻诗…',
     currentPageOnly: '仅筛选当前页',
+    statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人',
+    mobileNavHome: '诗笺', mobileNavSearch: '寻诗', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 
@@ -469,6 +474,43 @@ async function changeUiLang() {
   }
 }
 
+function scheduleSeaMenuClose() {
+  clearTimeout(seaMenuTimer)
+  seaMenuTimer = setTimeout(() => { seaMenuOpen.value = false }, 180)
+}
+
+function keepSeaMenuOpen() {
+  clearTimeout(seaMenuTimer)
+  seaMenuOpen.value = true
+}
+
+function closeNavigationMenus() {
+  clearTimeout(seaMenuTimer)
+  seaMenuOpen.value = false
+  mobileSeaOpen.value = false
+}
+
+async function goToSection(selector) {
+  closeNavigationMenus()
+  await nextTick()
+  document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+async function goToSeaTab(tab) {
+  await openSeaTab(tab)
+  closeNavigationMenus()
+  await nextTick()
+  document.querySelector('#sea')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function handleNavigationKey(event) {
+  if (event.key === 'Escape') closeNavigationMenus()
+}
+
+function handleNavigationClick(event) {
+  if (!event.target.closest('.nav-dropdown')) seaMenuOpen.value = false
+}
+
 async function openSeaTab(tab) {
   seaTab.value = tab
   if (!seaLoaded.value[tab]) await loadSeaTab(tab)
@@ -587,7 +629,15 @@ onMounted(() => {
   document.documentElement.lang = uiLang.value
   localStorage.setItem('poetry-ui-lang', uiLang.value)
   localStorage.setItem('poetry-poem-lang', poemLang.value)
+  document.addEventListener('keydown', handleNavigationKey)
+  document.addEventListener('click', handleNavigationClick)
   return Promise.all([loadInitialPoem(), loadFilters()]).then(() => loadSeaTab('stats'))
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(seaMenuTimer)
+  document.removeEventListener('keydown', handleNavigationKey)
+  document.removeEventListener('click', handleNavigationClick)
 })
 </script>
 
@@ -598,10 +648,19 @@ onMounted(() => {
         <span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span>
         <span><b>{{ m.brand }}</b><small>{{ m.slogan }}</small></span>
       </a>
-      <nav>
+      <nav class="desktop-nav">
         <a class="active" href="#today">{{ m.today }}</a>
         <a href="#explore">{{ m.explore }}</a>
-        <a href="#sea" @click="openSeaTab(seaTab)">{{ m.seaNav }}</a>
+        <div class="nav-dropdown" @mouseenter="keepSeaMenuOpen" @mouseleave="scheduleSeaMenuClose">
+          <button class="nav-dropdown-trigger" @click="seaMenuOpen = !seaMenuOpen" aria-haspopup="menu" :aria-expanded="seaMenuOpen">
+            {{ m.seaNav }} <ChevronDown :size="13" :class="{rotated:seaMenuOpen}"/>
+          </button>
+          <div v-show="seaMenuOpen" class="nav-dropdown-menu" role="menu" @click.stop>
+            <button role="menuitem" :class="{current:seaTab === 'stats'}" @click="goToSeaTab('stats')"><BarChart3 :size="19"/><span><b>{{ m.statsTab }}</b><small>{{ m.statsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'stats'" :size="15"/></button>
+            <button role="menuitem" :class="{current:seaTab === 'poems'}" @click="goToSeaTab('poems')"><BookOpen :size="19"/><span><b>{{ m.poemsTab }}</b><small>{{ m.poemsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'poems'" :size="15"/></button>
+            <button role="menuitem" :class="{current:seaTab === 'authors'}" @click="goToSeaTab('authors')"><Users :size="19"/><span><b>{{ m.authorsTab }}</b><small>{{ m.authorsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'authors'" :size="15"/></button>
+          </div>
+        </div>
         <a href="#favorites">{{ m.favorite }} <i v-if="favorites.length">{{ favorites.length }}</i></a>
       </nav>
       <div class="nav-actions">
@@ -760,6 +819,22 @@ onMounted(() => {
         <div class="fav-row"><button v-for="p in favorites.slice(0,8)" :key="p.id" @click="showPoem(p)"><small>{{p.dynasty?.name}} · {{p.author?.name}}</small><b>{{p.title}}</b></button></div>
       </section>
     </main>
+
+    <nav class="mobile-bottom-nav" :aria-label="m.languageAria">
+      <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
+      <button @click="goToSection('#explore')"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
+      <button :class="{active:mobileSeaOpen}" @click="mobileSeaOpen = true"><Waves :size="20"/><span>{{ m.mobileNavSea }}</span></button>
+      <button @click="goToSection(favorites.length ? '#favorites' : '#today')"><Bookmark :size="20"/><span>{{ m.mobileNavFavorite }}</span><i v-if="favorites.length">{{ favorites.length }}</i></button>
+    </nav>
+
+    <div v-if="mobileSeaOpen" class="mobile-menu-backdrop" @click="mobileSeaOpen = false"></div>
+    <aside :class="['mobile-sea-sheet',{open:mobileSeaOpen}]" :aria-hidden="!mobileSeaOpen">
+      <div class="mobile-sheet-handle"></div>
+      <div class="mobile-sheet-head"><div><small>{{ m.seaKicker }}</small><h3>{{ m.seaNav }}</h3></div><button @click="mobileSeaOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
+      <button :class="{current:seaTab === 'stats'}" @click="goToSeaTab('stats')"><BarChart3 :size="21"/><span><b>{{ m.statsTab }}</b><small>{{ m.statsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+      <button :class="{current:seaTab === 'poems'}" @click="goToSeaTab('poems')"><BookOpen :size="21"/><span><b>{{ m.poemsTab }}</b><small>{{ m.poemsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+      <button :class="{current:seaTab === 'authors'}" @click="goToSeaTab('authors')"><Users :size="21"/><span><b>{{ m.authorsTab }}</b><small>{{ m.authorsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+    </aside>
 
     <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
   </div>
