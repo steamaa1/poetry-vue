@@ -1351,3 +1351,87 @@ main > section:not(:first-child)::after {
 .mobile-future-items { margin-left: 22px; padding-left: 10px; border-left: 1px solid rgba(73,101,90,.2); }
 .mobile-future-items > div { position: relative; }
 .mobile-future-items > div:before { content:""; position:absolute; left:-10px; top:50%; width:8px; height:1px; background:rgba(73,101,90,.2); }
+
+/* 修复诗趣雅集页面子目录：模板使用 button，需覆盖浏览器默认按钮样式 */
+.directory-page-list,
+.mobile-page-list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: auto;
+}
+
+.directory-page-list > button,
+.mobile-page-list > button {
+  position: relative;
+  width: 100% !important;
+  min-height: 62px;
+  display: grid !important;
+  grid-template-columns: 26px minmax(0,1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(45,47,41,.08) !important;
+  border-radius: 0 !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent !important;
+  color: var(--green);
+  text-align: left;
+  box-shadow: none !important;
+}
+
+.directory-page-list > button:hover,
+.mobile-page-list > button:active {
+  color: var(--red);
+  background: rgba(168,62,50,.045) !important;
+}
+
+.directory-page-list > button > span,
+.mobile-page-list > button > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.directory-page-list > button b,
+.mobile-page-list > button b {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.directory-page-list > button small,
+.mobile-page-list > button small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.directory-page-list > button:before,
+.mobile-page-list > button:before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: rgba(73,101,90,.22);
+}
+
+.mobile-page-list {
+  margin-left: 24px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(73,101,90,.22);
+}
+
+.mobile-page-list > button:last-child,
+.directory-page-list > button:last-child {
+  border-bottom: 0 !important;
+}
