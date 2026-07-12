@@ -766,3 +766,89 @@
   .language-picker { height: 36px; }
   .icon-button { width: 36px; height: 36px; }
 }
+
+/* 朝代时间轴 */
+.dynasty-timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px 32px;
+  padding: 10px 0;
+}
+.dynasty-timeline:before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(73,101,90,.35) 8%, rgba(73,101,90,.35) 92%, transparent);
+}
+.dynasty-item { position: relative; display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 10px; }
+.dynasty-item:nth-child(even) { grid-column: 2; }
+.timeline-mark { position: relative; z-index: 1; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(168,62,50,.25); border-radius: 50%; background: var(--paper); }
+.timeline-mark span { color: var(--red); font-size: 10px; }
+.dynasty-card { min-height: 155px; padding: 17px; border: 1px solid var(--line); background: rgba(250,248,242,.7); }
+.dynasty-card > span { color: var(--red); font-size: 10px; }
+.dynasty-card h4 { margin: 9px 0 2px; font-family: 'ZCOOL XiaoWei'; font-size: 24px; font-weight: 400; }
+.dynasty-card small { color: var(--muted); font-size: 10px; }
+.dynasty-card button,
+.type-knowledge-card button {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 15px;
+  padding: 0 12px;
+  border: 1px solid rgba(168,62,50,.22);
+  background: transparent;
+  color: var(--red);
+  font-size: 10px;
+}
+.dynasty-card button:disabled,
+.type-knowledge-card button:disabled { opacity: .45; cursor: wait; }
+
+/* 体裁知识卡 */
+.type-knowledge-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.type-knowledge-card { min-height: 210px; display: flex; flex-direction: column; padding: 19px; border: 1px solid var(--line); background: rgba(250,248,242,.7); }
+.type-knowledge-card > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.type-knowledge-card > div span { color: var(--red); font-size: 10px; }
+.type-knowledge-card > div small { color: var(--muted); font-size: 9px; }
+.type-knowledge-card h4 { margin: 15px 0 9px; font-family: 'ZCOOL XiaoWei'; font-size: 22px; font-weight: 400; }
+.type-knowledge-card p { flex: 1; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.type-knowledge-card button { align-self: flex-start; }
+
+.app-shell[lang="zh-Hant"] .dynasty-card h4,
+.app-shell[lang="zh-Hant"] .type-knowledge-card h4 {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 600;
+}
+
+/* 五个诗海标签：桌面均分，窄屏横向滚动 */
+.sea-tabs { display: grid; grid-template-columns: repeat(5,auto); }
+.sea-tabs button { justify-content: center; }
+.nav-dropdown-menu { max-height: min(470px, calc(100vh - 110px)); overflow-y: auto; }
+
+@media (max-width: 850px) {
+  .type-knowledge-grid { grid-template-columns: repeat(2,1fr); }
+  .dynasty-timeline { grid-template-columns: 1fr; gap: 12px; }
+  .dynasty-timeline:before { left: 16px; }
+  .dynasty-item:nth-child(even) { grid-column: 1; }
+  .sea-tabs {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sea-tabs::-webkit-scrollbar { display: none; }
+  .sea-tabs button { flex: 0 0 auto; min-width: 118px; }
+  .mobile-sea-sheet { max-height: 82vh; overflow-y: auto; }
+}
+
+@media (max-width: 540px) {
+  .type-knowledge-grid { grid-template-columns: 1fr; }
+  .dynasty-card { min-height: 140px; }
+  .type-knowledge-card { min-height: 185px; }
+}

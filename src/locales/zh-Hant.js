@@ -19,13 +19,16 @@ const zhHant = {
     languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', loadFailed: '詩意暫時走遠了，請稍後重試。',
     switchFailed: '文字切換失敗，請稍後重試。', neighborFailed: '暫時無法返回這首詩箋。',
     seaNav: '詩海', seaKicker: '萬卷詩海', seaTitle: '一頁風雅，千年文章', seaDesc: '循資料觀詩脈，隨卷帙訪詩人。',
-    statsTab: '資料概覽', poemsTab: '詩海漫遊', authorsTab: '詩人名錄', loadingSea: '正在翻閱詩海…', loadSeaFailed: '詩海暫時起霧，請稍後重試。', reload: '重新載入',
+    statsTab: '資料概覽', poemsTab: '詩海漫遊', authorsTab: '詩人名錄', dynastiesTab: '朝代風華', typesTab: '詩體詞牌', loadingSea: '正在翻閱詩海…', loadSeaFailed: '詩海暫時起霧，請稍後重試。', reload: '重新載入',
+    dynastiesTitle: '朝代時間軸', dynastiesDesc: '循歷史年輪，閱讀不同朝代的詩意風華。', typesTitle: '體裁知識卡', typesDesc: '識詩體格律，於句讀之間體會文體之美。',
+    dynastyYears: '{start} 至 {end}', unknownYears: '年代未詳', readDynasty: '讀一首本朝詩', readType: '讀一首此體裁',
+    linesLabel: '{count} 句', charsLabel: '每句 {count} 字', flexibleForm: '句式不定', taxonomyLoading: '正在尋詩…',
     statPoems: '收錄詩詞', statAuthors: '詩人雅士', statDynasties: '歷代風華', statTypes: '詩體詞牌',
     seaPoemsTitle: '詩海漫遊', seaPoemsDesc: '按卷翻閱浩瀚詩篇，點擊任意作品展開詩箋。',
     authorsTitle: '詩人名錄', authorsDesc: '循名訪古，與萬卷詩篇中的故人重逢。', famousAuthors: '常訪名家', allAuthors: '全部詩人',
     filterCurrentAuthors: '篩選本頁詩人', noAuthors: '本頁沒有符合條件的詩人。', randomByAuthor: '隨機讀一首', authorProfile: '查詢生平', authorLoading: '正在尋詩…',
     currentPageOnly: '僅篩選當前頁',
-    statsMenuDesc: '縱覽詩詞、作者與朝代', poemsMenuDesc: '按卷瀏覽古典詩詞', authorsMenuDesc: '循名訪問歷代詩人',
+    statsMenuDesc: '縱覽詩詞、作者與朝代', poemsMenuDesc: '按卷瀏覽古典詩詞', authorsMenuDesc: '循名訪問歷代詩人', dynastiesMenuDesc: '沿時間軸遍覽歷代風華', typesMenuDesc: '認識詩詞體裁與格律',
     mobileNavHome: '詩箋', mobileNavSearch: '尋詩', mobileNavSea: '詩海', mobileNavFavorite: '收藏', closeMenu: '關閉選單',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }

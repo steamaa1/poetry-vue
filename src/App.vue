@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig
 } from 'lucide-vue-next'
 
 const API = ''
@@ -43,9 +43,9 @@ const historyIndex = ref(-1)
 
 // 诗海板块按标签懒加载，避免拖慢首屏。
 const seaTab = ref('stats')
-const seaLoaded = ref({ stats: false, poems: false, authors: false })
-const seaLoading = ref({ stats: false, poems: false, authors: false })
-const seaErrors = ref({ stats: '', poems: '', authors: '' })
+const seaLoaded = ref({ stats: false, poems: false, authors: false, dynasties: true, types: true })
+const seaLoading = ref({ stats: false, poems: false, authors: false, dynasties: false, types: false })
+const seaErrors = ref({ stats: '', poems: '', authors: '', dynasties: '', types: '' })
 const stats = ref(null)
 const seaPoems = ref([])
 const seaPoemPage = ref(1)
@@ -55,6 +55,7 @@ const authorPage = ref(1)
 const authorHasMore = ref(false)
 const authorFilter = ref('')
 const authorReading = ref('')
+const taxonomyReading = ref('')
 const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
 const seaMenuOpen = ref(false)
 const mobileSeaOpen = ref(false)
@@ -80,13 +81,16 @@ const zhHans = {
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
     seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
-    statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
+    statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', dynastiesTab: '朝代风华', typesTab: '诗体词牌', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
+    dynastiesTitle: '朝代时间轴', dynastiesDesc: '循历史年轮，阅读不同朝代的诗意风华。', typesTitle: '体裁知识卡', typesDesc: '识诗体格律，于句读之间体会文体之美。',
+    dynastyYears: '{start} 至 {end}', unknownYears: '年代未详', readDynasty: '读一首本朝诗', readType: '读一首此体裁',
+    linesLabel: '{count} 句', charsLabel: '每句 {count} 字', flexibleForm: '句式不定', taxonomyLoading: '正在寻诗…',
     statPoems: '收录诗词', statAuthors: '诗人雅士', statDynasties: '历代风华', statTypes: '诗体词牌',
     seaPoemsTitle: '诗海漫游', seaPoemsDesc: '按卷翻阅浩瀚诗篇，点击任意作品展开诗笺。',
     authorsTitle: '诗人名录', authorsDesc: '循名访古，与万卷诗篇中的故人重逢。', famousAuthors: '常访名家', allAuthors: '全部诗人',
     filterCurrentAuthors: '筛选本页诗人', noAuthors: '本页没有符合条件的诗人。', randomByAuthor: '随机读一首', authorProfile: '查询生平', authorLoading: '正在寻诗…',
     currentPageOnly: '仅筛选当前页',
-    statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人',
+    statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人', dynastiesMenuDesc: '沿时间轴遍览历代风华', typesMenuDesc: '认识诗词体裁与格律',
     mobileNavHome: '诗笺', mobileNavSearch: '寻诗', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
@@ -432,7 +436,7 @@ async function setPoemLang(nextLang) {
   try {
     await loadPoemById(poem.value.id)
     if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
-    for (const tab of ['stats', 'poems', 'authors']) {
+    for (const tab of ['stats', 'poems', 'authors', 'dynasties', 'types']) {
       if (seaLoaded.value[tab]) {
         seaLoaded.value = { ...seaLoaded.value, [tab]: false }
         await loadSeaTab(tab)
@@ -461,7 +465,7 @@ async function changeUiLang() {
       poem.value?.id ? loadPoemById(poem.value.id) : randomPoem()
     ])
     if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
-    for (const tab of ['stats', 'poems', 'authors']) {
+    for (const tab of ['stats', 'poems', 'authors', 'dynasties', 'types']) {
       if (seaLoaded.value[tab]) {
         seaLoaded.value = { ...seaLoaded.value, [tab]: false }
         await loadSeaTab(tab)
@@ -471,6 +475,35 @@ async function changeUiLang() {
     error.value = m.value.switchFailed
   } finally {
     loading.value = false
+  }
+}
+
+function formatDynastyYears(item) {
+  if (item.start_year == null || item.end_year == null) return m.value.unknownYears
+  const displayYear = year => year < 0 ? `前${Math.abs(year)}` : String(year)
+  return m.value.dynastyYears.replace('{start}', displayYear(item.start_year)).replace('{end}', displayYear(item.end_year))
+}
+
+function formatTypeRule(item) {
+  const parts = []
+  if (item.lines) parts.push(m.value.linesLabel.replace('{count}', item.lines))
+  if (item.chars_per_line) parts.push(m.value.charsLabel.replace('{count}', item.chars_per_line))
+  return parts.length ? parts.join(' · ') : m.value.flexibleForm
+}
+
+async function readTaxonomyPoem(kind, name) {
+  if (!name || taxonomyReading.value) return
+  taxonomyReading.value = `${kind}:${name}`
+  try {
+    const key = kind === 'dynasty' ? 'dynasty' : 'type'
+    const data = await getJSON(`/api/poems/random?${key}=${encodeURIComponent(name)}`)
+    recordPoem(data.data)
+    await nextTick()
+    poemStage.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } catch (_) {
+    seaErrors.value = { ...seaErrors.value, [kind === 'dynasty' ? 'dynasties' : 'types']: m.value.loadSeaFailed }
+  } finally {
+    taxonomyReading.value = ''
   }
 }
 
@@ -659,6 +692,8 @@ onBeforeUnmount(() => {
             <button role="menuitem" :class="{current:seaTab === 'stats'}" @click="goToSeaTab('stats')"><BarChart3 :size="19"/><span><b>{{ m.statsTab }}</b><small>{{ m.statsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'stats'" :size="15"/></button>
             <button role="menuitem" :class="{current:seaTab === 'poems'}" @click="goToSeaTab('poems')"><BookOpen :size="19"/><span><b>{{ m.poemsTab }}</b><small>{{ m.poemsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'poems'" :size="15"/></button>
             <button role="menuitem" :class="{current:seaTab === 'authors'}" @click="goToSeaTab('authors')"><Users :size="19"/><span><b>{{ m.authorsTab }}</b><small>{{ m.authorsMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'authors'" :size="15"/></button>
+            <button role="menuitem" :class="{current:seaTab === 'dynasties'}" @click="goToSeaTab('dynasties')"><Landmark :size="19"/><span><b>{{ m.dynastiesTab }}</b><small>{{ m.dynastiesMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'dynasties'" :size="15"/></button>
+            <button role="menuitem" :class="{current:seaTab === 'types'}" @click="goToSeaTab('types')"><LibraryBig :size="19"/><span><b>{{ m.typesTab }}</b><small>{{ m.typesMenuDesc }}</small></span><CheckCircle2 v-if="seaTab === 'types'" :size="15"/></button>
           </div>
         </div>
         <a href="#favorites">{{ m.favorite }} <i v-if="favorites.length">{{ favorites.length }}</i></a>
@@ -757,6 +792,8 @@ onBeforeUnmount(() => {
             <button :class="{active:seaTab === 'stats'}" @click="openSeaTab('stats')"><BarChart3 :size="17"/> {{ m.statsTab }}</button>
             <button :class="{active:seaTab === 'poems'}" @click="openSeaTab('poems')"><BookOpen :size="17"/> {{ m.poemsTab }}</button>
             <button :class="{active:seaTab === 'authors'}" @click="openSeaTab('authors')"><Users :size="17"/> {{ m.authorsTab }}</button>
+            <button :class="{active:seaTab === 'dynasties'}" @click="openSeaTab('dynasties')"><Landmark :size="17"/> {{ m.dynastiesTab }}</button>
+            <button :class="{active:seaTab === 'types'}" @click="openSeaTab('types')"><LibraryBig :size="17"/> {{ m.typesTab }}</button>
           </div>
 
           <div class="sea-panel" :lang="poemLang">
@@ -767,8 +804,8 @@ onBeforeUnmount(() => {
               <div class="stats-grid">
                 <button @click="openSeaTab('poems')"><strong>{{ Number(stats.poems || 0).toLocaleString() }}</strong><span>{{ m.statPoems }}</span><BookOpen :size="19"/></button>
                 <button @click="openSeaTab('authors')"><strong>{{ Number(stats.authors || 0).toLocaleString() }}</strong><span>{{ m.statAuthors }}</span><Users :size="19"/></button>
-                <div><strong>{{ Number(stats.dynasties || 0).toLocaleString() }}</strong><span>{{ m.statDynasties }}</span><Waves :size="19"/></div>
-                <div><strong>{{ Number(stats.types || 0).toLocaleString() }}</strong><span>{{ m.statTypes }}</span><BookOpen :size="19"/></div>
+                <button @click="openSeaTab('dynasties')"><strong>{{ Number(stats.dynasties || 0).toLocaleString() }}</strong><span>{{ m.statDynasties }}</span><Landmark :size="19"/></button>
+                <button @click="openSeaTab('types')"><strong>{{ Number(stats.types || 0).toLocaleString() }}</strong><span>{{ m.statTypes }}</span><LibraryBig :size="19"/></button>
               </div>
             </template>
 
@@ -786,6 +823,27 @@ onBeforeUnmount(() => {
                 <button @click="changeSeaPoemPage(-1)" :disabled="seaPoemPage <= 1"><ChevronLeft :size="17"/> {{ m.searchPrevious }}</button>
                 <span>{{ m.pageLabel.replace('{page}', seaPoemPage) }}</span>
                 <button @click="changeSeaPoemPage(1)" :disabled="!seaPoemHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
+              </div>
+            </template>
+
+            <template v-else-if="seaTab === 'dynasties'">
+              <div class="sea-panel-head"><div><h3>{{ m.dynastiesTitle }}</h3><p>{{ m.dynastiesDesc }}</p></div></div>
+              <div class="dynasty-timeline">
+                <article v-for="(item,index) in dynasties" :key="item.id" class="dynasty-item">
+                  <div class="timeline-mark"><span>{{ index + 1 }}</span></div>
+                  <div class="dynasty-card"><span>{{ formatDynastyYears(item) }}</span><h4>{{ item.name }}</h4><small>{{ item.name_en }}</small><button @click="readTaxonomyPoem('dynasty',item.name)" :disabled="Boolean(taxonomyReading)"><RotateCw v-if="taxonomyReading === `dynasty:${item.name}`" class="spin" :size="14"/><BookOpen v-else :size="14"/> {{ taxonomyReading === `dynasty:${item.name}` ? m.taxonomyLoading : m.readDynasty }}</button></div>
+                </article>
+              </div>
+            </template>
+
+            <template v-else-if="seaTab === 'types'">
+              <div class="sea-panel-head"><div><h3>{{ m.typesTitle }}</h3><p>{{ m.typesDesc }}</p></div></div>
+              <div class="type-knowledge-grid">
+                <article v-for="item in types" :key="item.id" class="type-knowledge-card">
+                  <div><span>{{ item.category }}</span><small>{{ formatTypeRule(item) }}</small></div>
+                  <h4>{{ item.name }}</h4><p>{{ item.description || m.flexibleForm }}</p>
+                  <button @click="readTaxonomyPoem('type',item.name)" :disabled="Boolean(taxonomyReading)"><RotateCw v-if="taxonomyReading === `type:${item.name}`" class="spin" :size="14"/><BookOpen v-else :size="14"/> {{ taxonomyReading === `type:${item.name}` ? m.taxonomyLoading : m.readType }}</button>
+                </article>
               </div>
             </template>
 
@@ -834,6 +892,8 @@ onBeforeUnmount(() => {
       <button :class="{current:seaTab === 'stats'}" @click="goToSeaTab('stats')"><BarChart3 :size="21"/><span><b>{{ m.statsTab }}</b><small>{{ m.statsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
       <button :class="{current:seaTab === 'poems'}" @click="goToSeaTab('poems')"><BookOpen :size="21"/><span><b>{{ m.poemsTab }}</b><small>{{ m.poemsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
       <button :class="{current:seaTab === 'authors'}" @click="goToSeaTab('authors')"><Users :size="21"/><span><b>{{ m.authorsTab }}</b><small>{{ m.authorsMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+      <button :class="{current:seaTab === 'dynasties'}" @click="goToSeaTab('dynasties')"><Landmark :size="21"/><span><b>{{ m.dynastiesTab }}</b><small>{{ m.dynastiesMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+      <button :class="{current:seaTab === 'types'}" @click="goToSeaTab('types')"><LibraryBig :size="21"/><span><b>{{ m.typesTab }}</b><small>{{ m.typesMenuDesc }}</small></span><ChevronRight :size="17"/></button>
     </aside>
 
     <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
