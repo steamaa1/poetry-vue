@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import {
-  Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, Github, Languages, ChevronDown,
+  Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
   ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info
 } from 'lucide-vue-next'
 
@@ -16,6 +16,9 @@ const results = ref([])
 const searched = ref(false)
 const searching = ref(false)
 const searchMessage = ref('')
+const searchPage = ref(1)
+const searchPageSize = 12
+const searchHasMore = ref(false)
 const savedUiLang = localStorage.getItem('poetry-ui-lang')
 const savedPoemLang = localStorage.getItem('poetry-poem-lang')
 const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language || '']
@@ -31,6 +34,8 @@ const dynasties = ref([])
 const types = ref([])
 const copied = ref(false)
 const shared = ref(false)
+const generatingCard = ref(false)
+const cardSaved = ref(false)
 const favorites = ref(JSON.parse(localStorage.getItem('poetry-favorites') || '[]'))
 const poemHistory = ref([])
 const historyIndex = ref(-1)
@@ -42,13 +47,13 @@ const messages = {
     intro1: '从近四十万首古典诗词中，撷取一瞬风月。', intro2: '愿字句越过千年，恰好落在你的心上。',
     dynasty: '朝代', allDynasties: '不限朝代', genre: '体裁', allGenres: '不限体裁', random: '随缘一首',
     finding: '正在山水间寻诗…', retry: '再试一次', poetry: '古诗词', anonymous: '佚名', sheet: '号诗笺',
-    copied: '已抄录', copy: '抄录全诗', share: '分享诗词', shared: '已复制分享内容', translation: '查询译文', previous: '上一首', next: '下一首', poemScript: '诗笺文字',
+    copied: '已抄录', copy: '抄录全诗', share: '分享诗词', shared: '已复制分享内容', translation: '查询译文', generateCard: '生成卡片', generatingCard: '生成中…', cardSaved: '已下载', previous: '上一首', next: '下一首', poemScript: '诗笺文字',
     scriptNote: '简繁转换或因合并字与古籍原文有异，建议对照阅读。',
     searchKicker: '寻章摘句', searchTitle: '心有所念，诗有所应',
     searchDesc: '输入至少三个字的诗句、标题或作者信息，去浩瀚诗海里寻觅。',
     placeholder: '试试「明月光」「春风里」或「李太白」…', all: '全文', title: '标题', content: '正文', author: '作者',
     search: '寻诗', suggestions: '不知寻什么？', searching: '正在翻阅诗卷…', searchHint: '寻诗提示', found: '寻得', articles: '篇',
-    collapse: '收起', openSheet: '展开诗笺 →', noResult: '没有寻到相关诗句，换个关键词试试吧。',
+    collapse: '收起', searchPrevious: '上一页', searchNext: '下一页', pageLabel: '第 {page} 页', openSheet: '展开诗笺 →', noResult: '没有寻到相关诗句，换个关键词试试吧。',
     enterSearch: '请输入搜索内容。', minSearch: '诗泉搜索接口要求至少 3 个字，请输入更完整的诗句、标题或作者信息。',
     searchUnavailable: '搜索暂时不可用，请稍后重试。', favoritesKicker: '私藏诗笺', favoritesTitle: '曾与你相逢的诗',
     dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗',
@@ -61,13 +66,13 @@ const messages = {
     intro1: '從近四十萬首古典詩詞中，擷取一瞬風月。', intro2: '願字句越過千年，恰好落在你的心上。',
     dynasty: '朝代', allDynasties: '不限朝代', genre: '體裁', allGenres: '不限體裁', random: '隨緣一首',
     finding: '正在山水間尋詩…', retry: '再試一次', poetry: '古詩詞', anonymous: '佚名', sheet: '號詩箋',
-    copied: '已抄錄', copy: '抄錄全詩', share: '分享詩詞', shared: '已複製分享內容', translation: '查詢譯文', previous: '上一首', next: '下一首', poemScript: '詩箋文字',
+    copied: '已抄錄', copy: '抄錄全詩', share: '分享詩詞', shared: '已複製分享內容', translation: '查詢譯文', generateCard: '生成卡片', generatingCard: '生成中…', cardSaved: '已下載', previous: '上一首', next: '下一首', poemScript: '詩箋文字',
     scriptNote: '簡繁轉換或因合併字與古籍原文有異，建議對照閱讀。',
     searchKicker: '尋章摘句', searchTitle: '心有所念，詩有所應',
     searchDesc: '輸入至少三個字的詩句、標題或作者資訊，去浩瀚詩海裡尋覓。',
     placeholder: '試試「明月光」「春風裡」或「李太白」…', all: '全文', title: '標題', content: '正文', author: '作者',
     search: '尋詩', suggestions: '不知尋什麼？', searching: '正在翻閱詩卷…', searchHint: '尋詩提示', found: '尋得', articles: '篇',
-    collapse: '收起', openSheet: '展開詩箋 →', noResult: '沒有尋到相關詩句，換個關鍵詞試試吧。',
+    collapse: '收起', searchPrevious: '上一頁', searchNext: '下一頁', pageLabel: '第 {page} 頁', openSheet: '展開詩箋 →', noResult: '沒有尋到相關詩句，換個關鍵詞試試吧。',
     enterSearch: '請輸入搜索內容。', minSearch: '詩泉搜索接口要求至少 3 個字，請輸入更完整的詩句、標題或作者資訊。',
     searchUnavailable: '搜索暫時不可用，請稍後重試。', favoritesKicker: '私藏詩箋', favoritesTitle: '曾與你相逢的詩',
     dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗',
@@ -84,11 +89,32 @@ const poemText = computed(() => poem.value ? `${poem.value.title}\n${poem.value.
 const searchHeading = computed(() => {
   if (searching.value) return m.value.searching
   if (searchMessage.value && !results.value.length) return m.value.searchHint
-  return `${m.value.found} ${results.value.length} ${m.value.articles}`
+  return `${m.value.found} ${results.value.length} ${m.value.articles} · ${m.value.pageLabel.replace('{page}', searchPage.value)}`
 })
 const quickWords = computed(() => uiLang.value === 'zh-Hant'
   ? ['明月光', '思故鄉', '春風裡', '長安城', '李太白']
   : ['明月光', '思故乡', '春风里', '长安城', '李太白'])
+
+function highlightedParts(text) {
+  const source = String(text || '')
+  const keyword = query.value.trim()
+  if (!keyword) return [{ text: source, match: false }]
+
+  const parts = []
+  const lowerSource = source.toLocaleLowerCase()
+  const lowerKeyword = keyword.toLocaleLowerCase()
+  let cursor = 0
+  let index = lowerSource.indexOf(lowerKeyword, cursor)
+
+  while (index !== -1) {
+    if (index > cursor) parts.push({ text: source.slice(cursor, index), match: false })
+    parts.push({ text: source.slice(index, index + keyword.length), match: true })
+    cursor = index + keyword.length
+    index = lowerSource.indexOf(lowerKeyword, cursor)
+  }
+  if (cursor < source.length) parts.push({ text: source.slice(cursor), match: false })
+  return parts.length ? parts : [{ text: source, match: false }]
+}
 
 async function getJSON(path, requestLang = poemLang.value) {
   const joiner = path.includes('?') ? '&' : '?'
@@ -163,19 +189,27 @@ async function moveHistory(step) {
     loading.value = false
   }
 }
-async function searchPoems() {
+async function searchPoems(resetPage = true) {
   const keyword = query.value.trim()
   searched.value = true
   results.value = []
   searchMessage.value = ''
+  searchHasMore.value = false
+  if (resetPage) searchPage.value = 1
   if (!keyword) { searchMessage.value = m.value.enterSearch; return }
   if ([...keyword].length < 3) { searchMessage.value = m.value.minSearch; return }
 
   searching.value = true
   try {
-    const p = new URLSearchParams({ q: keyword, type: searchType.value })
+    const p = new URLSearchParams({
+      q: keyword,
+      type: searchType.value,
+      page: String(searchPage.value),
+      pageSize: String(searchPageSize)
+    })
     const data = await getJSON(`/api/search?${p}`)
     results.value = Array.isArray(data?.data) ? data.data : []
+    searchHasMore.value = Boolean(data?.pagination?.hasMore)
     if (!results.value.length) searchMessage.value = m.value.noResult
   } catch (_) {
     searchMessage.value = m.value.searchUnavailable
@@ -184,6 +218,14 @@ async function searchPoems() {
   }
 }
 
+async function changeSearchPage(step) {
+  const target = searchPage.value + step
+  if (target < 1 || searching.value || (step > 0 && !searchHasMore.value)) return
+  searchPage.value = target
+  await searchPoems(false)
+  await nextTick()
+  document.querySelector('.results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 async function showPoem(p) {
   recordPoem(p)
   searched.value = false
@@ -236,6 +278,134 @@ ${shareData.url}`)
   setTimeout(() => shared.value = false, 1800)
 }
 
+function wrapCanvasText(ctx, text, maxWidth) {
+  const lines = []
+  let line = ''
+  for (const char of String(text || '')) {
+    const test = line + char
+    if (line && ctx.measureText(test).width > maxWidth) {
+      lines.push(line)
+      line = char
+    } else {
+      line = test
+    }
+  }
+  if (line) lines.push(line)
+  return lines.length ? lines : ['']
+}
+
+async function generatePoemCard() {
+  if (!poem.value || generatingCard.value) return
+  generatingCard.value = true
+  cardSaved.value = false
+  try {
+    await document.fonts?.ready
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const width = 1200
+    const padding = 120
+    const contentWidth = width - padding * 2
+    const serif = poemLang.value === 'zh-Hant' ? '"Noto Serif TC", serif' : '"Noto Serif SC", serif'
+
+    ctx.font = `600 58px ${serif}`
+    const titleLines = wrapCanvasText(ctx, poem.value.title, contentWidth)
+    ctx.font = `400 36px ${serif}`
+    const verseLines = poem.value.content.flatMap(line => wrapCanvasText(ctx, line, contentWidth))
+    const height = Math.max(1500, 360 + titleLines.length * 82 + verseLines.length * 62 + 360)
+    canvas.width = width
+    canvas.height = height
+
+    const paper = ctx.createLinearGradient(0, 0, width, height)
+    paper.addColorStop(0, '#fbf8f0')
+    paper.addColorStop(1, '#eee7d7')
+    ctx.fillStyle = paper
+    ctx.fillRect(0, 0, width, height)
+
+    ctx.globalAlpha = .16
+    ctx.fillStyle = '#d4af7a'
+    ctx.beginPath()
+    ctx.arc(width - 220, 210, 145, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#607268'
+    ctx.beginPath()
+    ctx.moveTo(0, height - 300)
+    ctx.lineTo(250, height - 610)
+    ctx.lineTo(430, height - 390)
+    ctx.lineTo(670, height - 720)
+    ctx.lineTo(900, height - 420)
+    ctx.lineTo(width, height - 570)
+    ctx.lineTo(width, height)
+    ctx.lineTo(0, height)
+    ctx.closePath()
+    ctx.fill()
+    ctx.globalAlpha = 1
+
+    ctx.strokeStyle = 'rgba(80,70,55,.25)'
+    ctx.lineWidth = 3
+    ctx.strokeRect(54, 54, width - 108, height - 108)
+    ctx.strokeStyle = 'rgba(168,62,50,.28)'
+    ctx.lineWidth = 2
+    ctx.strokeRect(70, 70, width - 140, height - 140)
+
+    let y = 190
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#a83e32'
+    ctx.font = `500 28px ${serif}`
+    ctx.fillText(poem.value.type?.name || m.value.poetry, width / 2, y)
+    y += 100
+
+    ctx.fillStyle = '#20231f'
+    ctx.font = `600 58px ${serif}`
+    for (const line of titleLines) {
+      ctx.fillText(line, width / 2, y)
+      y += 82
+    }
+
+    ctx.fillStyle = '#77786f'
+    ctx.font = `400 28px ${serif}`
+    ctx.fillText(`${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || m.value.anonymous}`, width / 2, y + 12)
+    y += 120
+
+    ctx.fillStyle = '#2c2e29'
+    ctx.font = `400 36px ${serif}`
+    for (const line of verseLines) {
+      ctx.fillText(line, width / 2, y)
+      y += 62
+    }
+
+    const footerY = height - 150
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#a83e32'
+    ctx.fillRect(padding, footerY - 48, 62, 62)
+    ctx.fillStyle = '#fffaf0'
+    ctx.font = `600 38px ${serif}`
+    ctx.textAlign = 'center'
+    ctx.fillText(poemLang.value === 'zh-Hant' ? '詩' : '诗', padding + 31, footerY - 3)
+
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#3e403a'
+    ctx.font = `500 27px ${serif}`
+    ctx.fillText(m.value.brand, padding + 82, footerY - 8)
+    ctx.fillStyle = '#77786f'
+    ctx.font = `400 20px ${serif}`
+    ctx.fillText(poemUrl(poem.value.id).href, padding + 82, footerY + 26)
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('canvas export failed')
+    const href = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const safeTitle = poem.value.title.replace(/[\/:*?"<>|]/g, '_').slice(0, 40)
+    link.href = href
+    link.download = `诗笺-${safeTitle}-${poem.value.id}.png`
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(href), 1000)
+    cardSaved.value = true
+    setTimeout(() => cardSaved.value = false, 1800)
+  } finally {
+    generatingCard.value = false
+  }
+}
+
 async function setPoemLang(nextLang) {
   if (poemLang.value === nextLang || !poem.value?.id) return
   poemLang.value = nextLang
@@ -244,7 +414,7 @@ async function setPoemLang(nextLang) {
   error.value = ''
   try {
     await loadPoemById(poem.value.id)
-    if (searched.value && query.value.trim().length >= 3) await searchPoems()
+    if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
@@ -267,7 +437,7 @@ async function changeUiLang() {
       loadFilters(),
       poem.value?.id ? loadPoemById(poem.value.id) : randomPoem()
     ])
-    if (searched.value && query.value.trim().length >= 3) await searchPoems()
+    if (searched.value && query.value.trim().length >= 3) await searchPoems(false)
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
@@ -360,7 +530,7 @@ onMounted(() => {
                   <div class="verses"><p v-for="(line,i) in poem.content" :key="i">{{ line }}</p></div>
                 </div>
                 <p v-if="poemLang === 'zh-Hans'" class="script-note"><Info :size="14"/> {{ m.scriptNote }}</p>
-                <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><div class="card-actions"><button @click="searchTranslation"><ExternalLink :size="16"/> {{ m.translation }}</button><button @click="sharePoem"><Check v-if="shared" :size="16"/><Share2 v-else :size="16"/> {{ shared ? m.shared : m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div></div>
+                <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><div class="card-actions"><button @click="generatePoemCard" :disabled="generatingCard"><Check v-if="cardSaved" :size="16"/><RotateCw v-else-if="generatingCard" class="spin" :size="16"/><ImageDown v-else :size="16"/> {{ cardSaved ? m.cardSaved : (generatingCard ? m.generatingCard : m.generateCard) }}</button><button @click="searchTranslation"><ExternalLink :size="16"/> {{ m.translation }}</button><button @click="sharePoem"><Check v-if="shared" :size="16"/><Share2 v-else :size="16"/> {{ shared ? m.shared : m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div></div>
               </template>
             </article>
 
@@ -387,8 +557,20 @@ onMounted(() => {
 
           <div v-if="searched" class="results">
             <div class="results-head"><b>{{ searchHeading }}</b><button @click="searched=false"><X :size="18"/> {{ m.collapse }}</button></div>
-            <div v-if="!searching && results.length" class="result-grid" :lang="poemLang"><button v-for="p in results.slice(0,12)" :key="p.id" class="result-card" @click="showPoem(p)"><span>{{ p.dynasty?.name }} · {{ p.author?.name }}</span><h3>{{ p.title }}</h3><p>{{ p.content?.slice(0,2).join(' ') }}</p><i>{{ m.openSheet }}</i></button></div>
+            <div v-if="!searching && results.length" class="result-grid" :lang="poemLang">
+              <button v-for="p in results" :key="p.id" class="result-card" @click="showPoem(p)">
+                <span><template v-for="(part,i) in highlightedParts(`${p.dynasty?.name || ''} · ${p.author?.name || ''}`)" :key="i"><mark v-if="part.match">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></span>
+                <h3><template v-for="(part,i) in highlightedParts(p.title)" :key="i"><mark v-if="part.match">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></h3>
+                <p><template v-for="(part,i) in highlightedParts(p.content?.slice(0,2).join(' '))" :key="i"><mark v-if="part.match">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+                <i>{{ m.openSheet }}</i>
+              </button>
+            </div>
             <div v-else-if="!searching" class="empty"><BookOpen :size="34"/><p>{{ searchMessage || m.noResult }}</p></div>
+            <div v-if="!searching && results.length" class="search-pagination">
+              <button @click="changeSearchPage(-1)" :disabled="searchPage <= 1"><ChevronLeft :size="17"/> {{ m.searchPrevious }}</button>
+              <span>{{ m.pageLabel.replace('{page}', searchPage) }}</span>
+              <button @click="changeSearchPage(1)" :disabled="!searchHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
+            </div>
           </div>
         </div>
       </section>
