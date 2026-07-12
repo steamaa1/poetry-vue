@@ -135,16 +135,10 @@ function poemUrl(id = poem.value?.id) {
   return url
 }
 
-function syncPoemUrl(id) {
-  const url = poemUrl(id)
-  window.history.replaceState({ poemId: id }, '', `${url.pathname}${url.search}`)
-}
-
 function recordPoem(nextPoem) {
   if (!nextPoem?.id) return
   const currentId = poemHistory.value[historyIndex.value]
   poem.value = nextPoem
-  syncPoemUrl(nextPoem.id)
   if (currentId === nextPoem.id) return
   poemHistory.value = poemHistory.value.slice(0, historyIndex.value + 1)
   poemHistory.value.push(nextPoem.id)
@@ -182,7 +176,6 @@ async function moveHistory(step) {
     const targetId = poemHistory.value[targetIndex]
     await loadPoemById(targetId)
     historyIndex.value = targetIndex
-    syncPoemUrl(targetId)
   } catch (_) {
     error.value = m.value.neighborFailed
   } finally {
@@ -454,7 +447,16 @@ async function loadFilters() {
 }
 
 async function loadInitialPoem() {
-  const poemId = Number.parseInt(new URL(window.location.href).searchParams.get('poem') || '', 10)
+  const currentUrl = new URL(window.location.href)
+  const poemParam = currentUrl.searchParams.get('poem')
+  const poemId = Number.parseInt(poemParam || '', 10)
+
+  // 分享参数只消费一次：立即清理地址栏，且不新增浏览器历史记录。
+  if (poemParam !== null) {
+    currentUrl.searchParams.delete('poem')
+    window.history.replaceState({}, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`)
+  }
+
   if (Number.isInteger(poemId) && poemId > 0) {
     loading.value = true
     error.value = ''
@@ -463,7 +465,7 @@ async function loadInitialPoem() {
       recordPoem(data.data)
       return
     } catch (_) {
-      syncPoemUrl(null)
+      // 分享链接失效时回退到普通随机首页。
     } finally {
       loading.value = false
     }
