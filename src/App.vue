@@ -101,10 +101,24 @@ async function getJSON(path, requestLang = poemLang.value) {
   return data
 }
 
+function poemUrl(id = poem.value?.id) {
+  const url = new URL(window.location.href)
+  url.hash = ''
+  if (id) url.searchParams.set('poem', String(id))
+  else url.searchParams.delete('poem')
+  return url
+}
+
+function syncPoemUrl(id) {
+  const url = poemUrl(id)
+  window.history.replaceState({ poemId: id }, '', `${url.pathname}${url.search}`)
+}
+
 function recordPoem(nextPoem) {
   if (!nextPoem?.id) return
   const currentId = poemHistory.value[historyIndex.value]
   poem.value = nextPoem
+  syncPoemUrl(nextPoem.id)
   if (currentId === nextPoem.id) return
   poemHistory.value = poemHistory.value.slice(0, historyIndex.value + 1)
   poemHistory.value.push(nextPoem.id)
@@ -142,6 +156,7 @@ async function moveHistory(step) {
     const targetId = poemHistory.value[targetIndex]
     await loadPoemById(targetId)
     historyIndex.value = targetIndex
+    syncPoemUrl(targetId)
   } catch (_) {
     error.value = m.value.neighborFailed
   } finally {
@@ -202,7 +217,7 @@ async function sharePoem() {
   const shareData = {
     title: `${poem.value.title} · ${poem.value.author?.name || m.value.anonymous}`,
     text: poemText.value,
-    url: window.location.href.split('#')[0]
+    url: poemUrl(poem.value.id).href
   }
 
   if (navigator.share) {
@@ -268,11 +283,29 @@ async function loadFilters() {
   } catch (_) {}
 }
 
+async function loadInitialPoem() {
+  const poemId = Number.parseInt(new URL(window.location.href).searchParams.get('poem') || '', 10)
+  if (Number.isInteger(poemId) && poemId > 0) {
+    loading.value = true
+    error.value = ''
+    try {
+      const data = await getJSON(`/api/poems/${poemId}`)
+      recordPoem(data.data)
+      return
+    } catch (_) {
+      syncPoemUrl(null)
+    } finally {
+      loading.value = false
+    }
+  }
+  await randomPoem()
+}
+
 onMounted(() => {
   document.documentElement.lang = uiLang.value
   localStorage.setItem('poetry-ui-lang', uiLang.value)
   localStorage.setItem('poetry-poem-lang', poemLang.value)
-  return Promise.all([randomPoem(), loadFilters()])
+  return Promise.all([loadInitialPoem(), loadFilters()])
 })
 </script>
 
