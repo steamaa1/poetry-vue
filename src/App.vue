@@ -3,12 +3,13 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2
 } from 'lucide-vue-next'
 
 const API = ''
 const poem = ref(null)
 const poemStage = ref(null)
+const readingOverlay = ref(null)
 const loading = ref(true)
 const error = ref('')
 const query = ref('')
@@ -56,6 +57,10 @@ const authorHasMore = ref(false)
 const authorFilter = ref('')
 const authorReading = ref('')
 const taxonomyReading = ref('')
+const flyingChar = ref('月')
+const flyingLoading = ref(false)
+const flyingError = ref('')
+const fullscreenReading = ref(false)
 const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
 const seaMenuOpen = ref(false)
 const mobileSeaOpen = ref(false)
@@ -80,6 +85,8 @@ const zhHans = {
     dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗', apiStatus: 'API 状态',
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
+    flyingNav: '飞花令', flyingKicker: '一字飞花', flyingTitle: '拈一字，寻一诗', flyingDesc: '输入一个汉字，从浩瀚诗海中随机寻找正文含有此字的诗。', flyingPlaceholder: '输入一个汉字', flyingAction: '行飞花令', flyingAgain: '再寻一首', flyingSingleChar: '飞花令只能输入一个汉字。', flyingFailed: '未寻到含此字的诗，请换一个字试试。', commonChars: '常用飞花字',
+    fullscreen: '全屏阅读', exitFullscreen: '退出全屏', immersiveReading: '沉浸阅读',
     seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
     statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', dynastiesTab: '朝代风华', typesTab: '诗体词牌', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
     dynastiesTitle: '朝代时间轴', dynastiesDesc: '循历史年轮，阅读不同朝代的诗意风华。', typesTitle: '体裁知识卡', typesDesc: '识诗体格律，于句读之间体会文体之美。',
@@ -114,6 +121,9 @@ const searchHeading = computed(() => {
 const quickWords = computed(() => uiLang.value === 'zh-Hant'
   ? ['明月光', '思故鄉', '春風裡', '長安城', '李太白']
   : ['明月光', '思故乡', '春风里', '长安城', '李太白'])
+const commonFlyingChars = computed(() => poemLang.value === 'zh-Hant'
+  ? ['月', '花', '春', '秋', '風', '雨', '山', '水', '酒', '雲']
+  : ['月', '花', '春', '秋', '风', '雨', '山', '水', '酒', '云'])
 
 const filteredAuthors = computed(() => {
   const keyword = authorFilter.value.trim().toLocaleLowerCase()
@@ -510,6 +520,54 @@ async function changeUiLang() {
   }
 }
 
+async function runFlyingGame() {
+  const char = [...flyingChar.value.trim()][0] || ''
+  if ([...flyingChar.value.trim()].length !== 1 || !/\p{Script=Han}/u.test(char)) {
+    flyingError.value = m.value.flyingSingleChar
+    return
+  }
+
+  flyingLoading.value = true
+  flyingError.value = ''
+  try {
+    const data = await getJSON(`/api/poems/random?char=${encodeURIComponent(char)}`)
+    recordPoem(data.data)
+    await nextTick()
+    poemStage.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } catch (_) {
+    flyingError.value = m.value.flyingFailed
+  } finally {
+    flyingLoading.value = false
+  }
+}
+
+function chooseFlyingChar(char) {
+  flyingChar.value = char
+  runFlyingGame()
+}
+
+async function enterFullscreenReading() {
+  if (!poem.value) return
+  fullscreenReading.value = true
+  await nextTick()
+  try {
+    await readingOverlay.value?.requestFullscreen?.()
+  } catch (_) {
+    // 不支持 Fullscreen API 时仍保留覆盖式沉浸阅读。
+  }
+}
+
+async function exitFullscreenReading() {
+  if (document.fullscreenElement) {
+    try { await document.exitFullscreen() } catch (_) {}
+  }
+  fullscreenReading.value = false
+}
+
+function handleFullscreenChange() {
+  if (!document.fullscreenElement && fullscreenReading.value) fullscreenReading.value = false
+}
+
 function formatDynastyYears(item) {
   if (item.start_year == null || item.end_year == null) return m.value.unknownYears
   const displayYear = year => year < 0 ? `前${Math.abs(year)}` : String(year)
@@ -696,6 +754,7 @@ onMounted(() => {
   localStorage.setItem('poetry-poem-lang', poemLang.value)
   document.addEventListener('keydown', handleNavigationKey)
   document.addEventListener('click', handleNavigationClick)
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
   return Promise.all([loadInitialPoem(), loadFilters()]).then(() => loadSeaTab('stats'))
 })
 
@@ -703,6 +762,7 @@ onBeforeUnmount(() => {
   clearTimeout(seaMenuTimer)
   document.removeEventListener('keydown', handleNavigationKey)
   document.removeEventListener('click', handleNavigationClick)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
 })
 </script>
 
@@ -716,6 +776,7 @@ onBeforeUnmount(() => {
       <nav class="desktop-nav">
         <a class="active" href="#today">{{ m.today }}</a>
         <a href="#explore">{{ m.explore }}</a>
+        <a href="#feihua">{{ m.flyingNav }}</a>
         <div class="nav-dropdown" @mouseenter="keepSeaMenuOpen" @mouseleave="scheduleSeaMenuClose">
           <button class="nav-dropdown-trigger" @click="seaMenuOpen = !seaMenuOpen" aria-haspopup="menu" :aria-expanded="seaMenuOpen">
             {{ m.seaNav }} <ChevronDown :size="13" :class="{rotated:seaMenuOpen}"/>
@@ -739,7 +800,7 @@ onBeforeUnmount(() => {
           </select>
           <ChevronDown :size="13" />
         </div>
-        <a class="icon-button" href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener" :title="m.myProject"><Github :size="19" /></a>
+        <a class="icon-button" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener" :title="m.myProject"><Github :size="19" /></a>
       </div>
     </header>
 
@@ -779,6 +840,7 @@ onBeforeUnmount(() => {
                 <button @click="moveHistory(1)" :disabled="loading || !canGoNext">{{ m.next }} <ChevronRight :size="17"/></button>
               </div>
               <div class="poem-language" role="group" :aria-label="m.poemScript">
+                <button class="fullscreen-button" @click="enterFullscreenReading"><Maximize2 :size="15"/> {{ m.fullscreen }}</button>
                 <span>{{ m.poemScript }}</span>
                 <button :class="{active:poemLang === 'zh-Hans'}" @click="setPoemLang('zh-Hans')">{{ m.simplifiedShort }}</button>
                 <button :class="{active:poemLang === 'zh-Hant'}" @click="setPoemLang('zh-Hant')">{{ m.traditionalShort }}</button>
@@ -811,6 +873,20 @@ onBeforeUnmount(() => {
               <button @click="changeSearchPage(1)" :disabled="!searchHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="feihua" class="flying-section">
+        <div class="wrap narrow">
+          <p class="section-kicker"><Flower2 :size="16"/> {{ m.flyingKicker }}</p>
+          <h2>{{ m.flyingTitle }}</h2>
+          <p>{{ m.flyingDesc }}</p>
+          <form class="flying-form" @submit.prevent="runFlyingGame">
+            <input v-model="flyingChar" maxlength="1" :placeholder="m.flyingPlaceholder" aria-label="飞花令汉字">
+            <button :disabled="flyingLoading"><RotateCw v-if="flyingLoading" class="spin" :size="17"/><Flower2 v-else :size="17"/> {{ flyingLoading ? m.flyingAgain : m.flyingAction }}</button>
+          </form>
+          <p v-if="flyingError" class="flying-error">{{ flyingError }}</p>
+          <div class="flying-quick"><span>{{ m.commonChars }}</span><button v-for="char in commonFlyingChars" :key="char" @click="chooseFlyingChar(char)">{{ char }}</button></div>
         </div>
       </section>
 
@@ -910,6 +986,17 @@ onBeforeUnmount(() => {
       </section>
     </main>
 
+    <div v-if="fullscreenReading && poem" ref="readingOverlay" class="reading-overlay" :lang="poemLang">
+      <button class="reading-close" @click="exitFullscreenReading"><Minimize2 :size="19"/> {{ m.exitFullscreen }}</button>
+      <div class="reading-paper">
+        <span class="reading-kicker">{{ m.immersiveReading }}</span>
+        <h2>{{ poem.title }}</h2>
+        <p class="reading-byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
+        <div class="reading-verses"><p v-for="(line,index) in poem.content" :key="index">{{ line }}</p></div>
+        <div class="reading-footer"><span>{{ m.brand }}</span><span>第 {{ poem.id }} {{ m.sheet }}</span></div>
+      </div>
+    </div>
+
     <nav class="mobile-bottom-nav" :aria-label="m.languageAria">
       <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
       <button @click="goToSection('#explore')"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
@@ -928,6 +1015,6 @@ onBeforeUnmount(() => {
       <button :class="{current:seaTab === 'types'}" @click="goToSeaTab('types')"><LibraryBig :size="21"/><span><b>{{ m.typesTab }}</b><small>{{ m.typesMenuDesc }}</small></span><ChevronRight :size="17"/></button>
     </aside>
 
-    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="/status.html">{{ m.apiStatus }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
+    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="/status.html">{{ m.apiStatus }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
   </div>
 </template>

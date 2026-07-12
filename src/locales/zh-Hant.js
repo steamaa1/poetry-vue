@@ -18,6 +18,8 @@ const zhHant = {
     dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗', apiStatus: 'API 狀態',
     languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', loadFailed: '詩意暫時走遠了，請稍後重試。',
     switchFailed: '文字切換失敗，請稍後重試。', neighborFailed: '暫時無法返回這首詩箋。',
+    flyingNav: '飛花令', flyingKicker: '一字飛花', flyingTitle: '拈一字，尋一詩', flyingDesc: '輸入一個漢字，從浩瀚詩海中隨機尋找正文含有此字的詩。', flyingPlaceholder: '輸入一個漢字', flyingAction: '行飛花令', flyingAgain: '再尋一首', flyingSingleChar: '飛花令只能輸入一個漢字。', flyingFailed: '未尋到含此字的詩，請換一個字試試。', commonChars: '常用飛花字',
+    fullscreen: '全屏閱讀', exitFullscreen: '退出全屏', immersiveReading: '沉浸閱讀',
     seaNav: '詩海', seaKicker: '萬卷詩海', seaTitle: '一頁風雅，千年文章', seaDesc: '循資料觀詩脈，隨卷帙訪詩人。',
     statsTab: '資料概覽', poemsTab: '詩海漫遊', authorsTab: '詩人名錄', dynastiesTab: '朝代風華', typesTab: '詩體詞牌', loadingSea: '正在翻閱詩海…', loadSeaFailed: '詩海暫時起霧，請稍後重試。', reload: '重新載入',
     dynastiesTitle: '朝代時間軸', dynastiesDesc: '循歷史年輪，閱讀不同朝代的詩意風華。', typesTitle: '體裁知識卡', typesDesc: '識詩體格律，於句讀之間體會文體之美。',
