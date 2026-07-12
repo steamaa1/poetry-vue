@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import SiteDirectory from './components/SiteDirectory.vue'
 import SiteFooter from './components/SiteFooter.vue'
+import { downloadPoemCard } from './utils/poemCard.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Languages, ChevronDown,
   ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Gamepad2
@@ -349,127 +350,19 @@ ${shareData.url}`)
   setTimeout(() => shared.value = false, 1800)
 }
 
-function wrapCanvasText(ctx, text, maxWidth) {
-  const lines = []
-  let line = ''
-  for (const char of String(text || '')) {
-    const test = line + char
-    if (line && ctx.measureText(test).width > maxWidth) {
-      lines.push(line)
-      line = char
-    } else {
-      line = test
-    }
-  }
-  if (line) lines.push(line)
-  return lines.length ? lines : ['']
-}
-
 async function generatePoemCard() {
   if (!poem.value || generatingCard.value) return
   generatingCard.value = true
   cardSaved.value = false
   try {
-    await document.fonts?.ready
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const width = 1200
-    const padding = 120
-    const contentWidth = width - padding * 2
-    const serif = poemLang.value === 'zh-Hant' ? '"Noto Serif TC", serif' : '"Noto Serif SC", serif'
-
-    ctx.font = `600 58px ${serif}`
-    const titleLines = wrapCanvasText(ctx, poem.value.title, contentWidth)
-    ctx.font = `400 36px ${serif}`
-    const verseLines = poem.value.content.flatMap(line => wrapCanvasText(ctx, line, contentWidth))
-    const height = Math.max(1500, 360 + titleLines.length * 82 + verseLines.length * 62 + 360)
-    canvas.width = width
-    canvas.height = height
-
-    const paper = ctx.createLinearGradient(0, 0, width, height)
-    paper.addColorStop(0, '#fbf8f0')
-    paper.addColorStop(1, '#eee7d7')
-    ctx.fillStyle = paper
-    ctx.fillRect(0, 0, width, height)
-
-    ctx.globalAlpha = .16
-    ctx.fillStyle = '#d4af7a'
-    ctx.beginPath()
-    ctx.arc(width - 220, 210, 145, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#607268'
-    ctx.beginPath()
-    ctx.moveTo(0, height - 300)
-    ctx.lineTo(250, height - 610)
-    ctx.lineTo(430, height - 390)
-    ctx.lineTo(670, height - 720)
-    ctx.lineTo(900, height - 420)
-    ctx.lineTo(width, height - 570)
-    ctx.lineTo(width, height)
-    ctx.lineTo(0, height)
-    ctx.closePath()
-    ctx.fill()
-    ctx.globalAlpha = 1
-
-    ctx.strokeStyle = 'rgba(80,70,55,.25)'
-    ctx.lineWidth = 3
-    ctx.strokeRect(54, 54, width - 108, height - 108)
-    ctx.strokeStyle = 'rgba(168,62,50,.28)'
-    ctx.lineWidth = 2
-    ctx.strokeRect(70, 70, width - 140, height - 140)
-
-    let y = 190
-    ctx.textAlign = 'center'
-    ctx.fillStyle = '#a83e32'
-    ctx.font = `500 28px ${serif}`
-    ctx.fillText(poem.value.type?.name || m.value.poetry, width / 2, y)
-    y += 100
-
-    ctx.fillStyle = '#20231f'
-    ctx.font = `600 58px ${serif}`
-    for (const line of titleLines) {
-      ctx.fillText(line, width / 2, y)
-      y += 82
-    }
-
-    ctx.fillStyle = '#77786f'
-    ctx.font = `400 28px ${serif}`
-    ctx.fillText(`${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || m.value.anonymous}`, width / 2, y + 12)
-    y += 120
-
-    ctx.fillStyle = '#2c2e29'
-    ctx.font = `400 36px ${serif}`
-    for (const line of verseLines) {
-      ctx.fillText(line, width / 2, y)
-      y += 62
-    }
-
-    const footerY = height - 150
-    ctx.textAlign = 'left'
-    ctx.fillStyle = '#a83e32'
-    ctx.fillRect(padding, footerY - 48, 62, 62)
-    ctx.fillStyle = '#fffaf0'
-    ctx.font = `600 38px ${serif}`
-    ctx.textAlign = 'center'
-    ctx.fillText(poemLang.value === 'zh-Hant' ? '詩' : '诗', padding + 31, footerY - 3)
-
-    ctx.textAlign = 'left'
-    ctx.fillStyle = '#3e403a'
-    ctx.font = `500 27px ${serif}`
-    ctx.fillText(m.value.brand, padding + 82, footerY - 8)
-    ctx.fillStyle = '#77786f'
-    ctx.font = `400 20px ${serif}`
-    ctx.fillText(poemUrl(poem.value.id).href, padding + 82, footerY + 26)
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
-    if (!blob) throw new Error('canvas export failed')
-    const href = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    const safeTitle = poem.value.title.replace(/[\/:*?"<>|]/g, '_').slice(0, 40)
-    link.href = href
-    link.download = `诗笺-${safeTitle}-${poem.value.id}.png`
-    link.click()
-    setTimeout(() => URL.revokeObjectURL(href), 1000)
+    await downloadPoemCard({
+      poem: poem.value,
+      poemLang: poemLang.value,
+      brand: m.value.brand,
+      anonymous: m.value.anonymous,
+      poetry: m.value.poetry,
+      url: poemUrl(poem.value.id).href
+    })
     cardSaved.value = true
     setTimeout(() => cardSaved.value = false, 1800)
   } finally {

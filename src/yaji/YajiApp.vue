@@ -8,6 +8,7 @@ import {
 import { yajiZhHant } from '../locales/zh-Hant.js'
 import SiteDirectory from '../components/SiteDirectory.vue'
 import SiteFooter from '../components/SiteFooter.vue'
+import { downloadPoemCard } from '../utils/poemCard.js'
 
 const zhHans = {
   brand: '诗笺', page: '诗趣雅集', slogan: '日课一诗，闲时雅戏', back: '诗笺随阅',
@@ -257,40 +258,14 @@ async function generateCard() {
   if (!poem.value || generating.value) return
   generating.value = true
   try {
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')
-    const width = 1000
-    const height = Math.max(1300, 600 + poem.value.content.length * 62)
-    canvas.width = width
-    canvas.height = height
-    context.fillStyle = '#f7f4ec'
-    context.fillRect(0, 0, width, height)
-    context.strokeStyle = 'rgba(168,62,50,.3)'
-    context.strokeRect(55, 55, width - 110, height - 110)
-    context.textAlign = 'center'
-    context.fillStyle = '#20231f'
-    context.font = '600 52px serif'
-    context.fillText(poem.value.title, width / 2, 210)
-    context.fillStyle = '#77786f'
-    context.font = '26px serif'
-    context.fillText(`${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || m.value.anonymous}`, width / 2, 270)
-    context.fillStyle = '#20231f'
-    context.font = '34px serif'
-    let y = 390
-    poem.value.content.forEach(line => { context.fillText(line, width / 2, y); y += 62 })
-    context.fillStyle = '#a83e32'
-    context.fillRect(100, height - 180, 60, 60)
-    context.fillStyle = 'white'
-    context.font = '36px serif'
-    context.fillText(poemLang.value === 'zh-Hant' ? '詩' : '诗', 130, height - 137)
-    context.textAlign = 'left'
-    context.fillStyle = '#77786f'
-    context.font = '18px monospace'
-    context.fillText(location.host, 180, height - 143)
-    const link = document.createElement('a')
-    link.href = canvas.toDataURL('image/png')
-    link.download = `诗笺-${poem.value.title}.png`
-    link.click()
+    await downloadPoemCard({
+      poem: poem.value,
+      poemLang: poemLang.value,
+      brand: m.value.brand,
+      anonymous: m.value.anonymous,
+      poetry: m.value.poetry,
+      url: `${window.location.origin}/?poem=${poem.value.id}`
+    })
   } finally {
     generating.value = false
   }
