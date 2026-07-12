@@ -246,6 +246,12 @@ Functions directory：netlify/functions
 - API：[诗泉](https://poetry.palemoky.com/)
 - 项目：[palemoky/chinese-poetry-api](https://github.com/palemoky/chinese-poetry-api)
 
+## 许可证
+
+本项目源代码与原创资源采用 [MIT License](LICENSE) 开源，版权所有 © 2026 Jiacheng。
+
+诗词数据由「诗泉」API 提供，第三方数据、字体、图标及其他外部资源遵循各自的许可证或使用条款，不属于本项目 MIT License 的授权范围。
+
 ---
 
 本项目由**GPT5.6-Sol**辅助开发
