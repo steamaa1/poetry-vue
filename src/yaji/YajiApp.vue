@@ -22,8 +22,8 @@ const zhHans = {
   poemScript: '诗笺文字', simplified: '简体', traditional: '繁體', scriptNote: '简繁转换或因合并字与古籍原文有异，建议对照阅读。',
   games: '诗词雅戏', gamesLead: '以诗为戏，在字句之间温故知新。',
   solitaire: '联句续章', solitaireDesc: '承前句余韵，续写下一章',
-  solitaireKicker: '承句续章', solitairePrompt: '请接下一句', solitairePlaceholder: '写下你记得的下一句…',
-  solitaireSubmit: '对句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '对句相合，正是此句。',
+  solitaireKicker: '补阙成章', solitairePrompt: '请补全下一句', solitairePlaceholder: '写下缺落的下一句…',
+  solitaireSubmit: '补句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '补句无误，诗章复原。',
   solitaireOneOff: '尚有一字之差，再想想。', solitaireNear: '已有几分相近，仍有数处不同。', solitaireFar: '与原句相去较远，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
   solitaireUnavailable: '暂时未寻到合适的联句，请再试一次。', solitaireScore: '答对 {correct} / 已答 {total}', solitaireEmpty: '请先写下下一句。',
   riddle: '诗谜寻踪', riddleDesc: '隐去诗题或诗人，循字句猜其来处',
@@ -538,9 +538,9 @@ onBeforeUnmount(() => {
           <p class="section-kicker"><Gamepad2 :size="16" /> {{ m.games }}</p>
           <h2>{{ m.games }}</h2>
           <p>{{ m.gamesLead }}</p>
-          <article id="solitaire" class="solitaire-panel">
+          <article id="fill-game" class="solitaire-panel">
             <div class="solitaire-head">
-              <div><span>{{ m.solitaireKicker }}</span><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p></div>
+              <div><span>{{ m.solitaireKicker }}</span><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p></div>
               <small>{{ m.solitaireScore.replace('{correct}', solitaireCorrectCount).replace('{total}', solitaireTotalCount) }}</small>
             </div>
             <div v-if="solitaireLoading" class="solitaire-state"><RotateCw class="spin" :size="26" /><span>{{ m.loading }}</span></div>
@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
           </article>
           <div class="yaji-game-grid yaji-game-placeholders">
             <article><CircleHelp :size="24" /><h3>{{ m.riddle }}</h3><p>{{ m.riddleDesc }}</p><span>{{ m.preparing }}</span></article>
-            <article><BookOpen :size="24" /><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p><span>{{ m.preparing }}</span></article>
+            <article><Gamepad2 :size="24" /><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p><span>{{ m.preparing }}</span></article>
           </div>
         </div>
       </section>
@@ -611,8 +611,8 @@ onBeforeUnmount(() => {
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.page }}</small><h3>{{ m.games }}</h3></div><button @click="gameSheetOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
       <button @click="scrollToSection('#games')"><CircleHelp :size="21"/><span><b>{{ m.riddle }}</b><small>{{ m.riddleDesc }}</small></span><i>{{ m.preparing }}</i></button>
-      <button @click="scrollToSection('#solitaire')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
-      <button @click="scrollToSection('#games')"><BookOpen :size="21"/><span><b>{{ m.fill }}</b><small>{{ m.fillDesc }}</small></span><i>{{ m.preparing }}</i></button>
+      <button @click="scrollToSection('#fill-game')"><BookOpen :size="21"/><span><b>{{ m.fill }}</b><small>{{ m.fillDesc }}</small></span></button>
+      <button @click="scrollToSection('#games')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
     </aside>
 
     <SiteFooter :messages="m" :ui-lang="uiLang" />
