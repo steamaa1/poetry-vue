@@ -44,7 +44,3 @@ npm run build
 ## API 代理
 
 生产环境通过 `functions/api/[[path]].js` 将同源 `/api/*` 请求代理到诗泉 API，避免浏览器受到第三方接口 CORS 限制。Cloudflare Pages 部署时会自动识别该 Functions 目录，无需额外环境变量。
-
----
-
-本项目由**GPT5.6-Sol**辅助开发

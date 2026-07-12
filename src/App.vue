@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, Shuffle, Heart, Copy, Check, Github, Languages, ChevronDown, X, BookOpen, Sparkles, RotateCw, Info } from 'lucide-vue-next'
+import {
+  Search, Shuffle, Heart, Copy, Check, Github, Languages, ChevronDown,
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info
+} from 'lucide-vue-next'
 
 const API = ''
 const poem = ref(null)
@@ -12,193 +15,307 @@ const results = ref([])
 const searched = ref(false)
 const searching = ref(false)
 const searchMessage = ref('')
-const lang = ref('zh-Hans')
+const uiLang = ref('zh-Hans')
+const poemLang = ref('zh-Hans')
 const dynasty = ref('')
 const type = ref('')
 const dynasties = ref([])
 const types = ref([])
 const copied = ref(false)
 const favorites = ref(JSON.parse(localStorage.getItem('poetry-favorites') || '[]'))
+const poemHistory = ref([])
+const historyIndex = ref(-1)
 
+const messages = {
+  'zh-Hans': {
+    brand: '诗笺', slogan: '一卷诗心，半生清欢', today: '今日一诗', explore: '寻诗', favorite: '收藏',
+    meet: '每日，与古人相逢', hero1: '读一首诗，', hero2: '见一方天地。',
+    intro1: '从近四十万首古典诗词中，撷取一瞬风月。', intro2: '愿字句越过千年，恰好落在你的心上。',
+    dynasty: '朝代', allDynasties: '不限朝代', genre: '体裁', allGenres: '不限体裁', random: '随缘一首',
+    finding: '正在山水间寻诗…', retry: '再试一次', poetry: '古诗词', anonymous: '佚名', sheet: '号诗笺',
+    copied: '已抄录', copy: '抄录全诗', previous: '上一首', next: '下一首', poemScript: '诗笺文字',
+    scriptNote: '简繁转换或因合并字与古籍原文有异，建议对照阅读。',
+    searchKicker: '寻章摘句', searchTitle: '心有所念，诗有所应',
+    searchDesc: '输入至少三个字的诗句、标题或作者信息，去浩瀚诗海里寻觅。',
+    placeholder: '试试「明月光」「春风里」或「李太白」…', all: '全文', title: '标题', content: '正文', author: '作者',
+    search: '寻诗', suggestions: '不知寻什么？', searching: '正在翻阅诗卷…', searchHint: '寻诗提示', found: '寻得', articles: '篇',
+    collapse: '收起', openSheet: '展开诗笺 →', noResult: '没有寻到相关诗句，换个关键词试试吧。',
+    enterSearch: '请输入搜索内容。', minSearch: '诗泉搜索接口要求至少 3 个字，请输入更完整的诗句、标题或作者信息。',
+    searchUnavailable: '搜索暂时不可用，请稍后重试。', favoritesKicker: '私藏诗笺', favoritesTitle: '曾与你相逢的诗',
+    dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗',
+    languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
+    switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。'
+  },
+  'zh-Hant': {
+    brand: '詩箋', slogan: '一卷詩心，半生清歡', today: '今日一詩', explore: '尋詩', favorite: '收藏',
+    meet: '每日，與古人相逢', hero1: '讀一首詩，', hero2: '見一方天地。',
+    intro1: '從近四十萬首古典詩詞中，擷取一瞬風月。', intro2: '願字句越過千年，恰好落在你的心上。',
+    dynasty: '朝代', allDynasties: '不限朝代', genre: '體裁', allGenres: '不限體裁', random: '隨緣一首',
+    finding: '正在山水間尋詩…', retry: '再試一次', poetry: '古詩詞', anonymous: '佚名', sheet: '號詩箋',
+    copied: '已抄錄', copy: '抄錄全詩', previous: '上一首', next: '下一首', poemScript: '詩箋文字',
+    scriptNote: '簡繁轉換或因合併字與古籍原文有異，建議對照閱讀。',
+    searchKicker: '尋章摘句', searchTitle: '心有所念，詩有所應',
+    searchDesc: '輸入至少三個字的詩句、標題或作者資訊，去浩瀚詩海裡尋覓。',
+    placeholder: '試試「明月光」「春風裡」或「李太白」…', all: '全文', title: '標題', content: '正文', author: '作者',
+    search: '尋詩', suggestions: '不知尋什麼？', searching: '正在翻閱詩卷…', searchHint: '尋詩提示', found: '尋得', articles: '篇',
+    collapse: '收起', openSheet: '展開詩箋 →', noResult: '沒有尋到相關詩句，換個關鍵詞試試吧。',
+    enterSearch: '請輸入搜索內容。', minSearch: '詩泉搜索接口要求至少 3 個字，請輸入更完整的詩句、標題或作者資訊。',
+    searchUnavailable: '搜索暫時不可用，請稍後重試。', favoritesKicker: '私藏詩箋', favoritesTitle: '曾與你相逢的詩',
+    dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗',
+    languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', loadFailed: '詩意暫時走遠了，請稍後重試。',
+    switchFailed: '文字切換失敗，請稍後重試。', neighborFailed: '暫時無法返回這首詩箋。'
+  }
+}
+
+const m = computed(() => messages[uiLang.value])
 const isFavorite = computed(() => poem.value && favorites.value.some(p => p.id === poem.value.id))
-const poemText = computed(() => poem.value ? `${poem.value.title}\n${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || '佚名'}\n\n${poem.value.content.join('\n')}` : '')
+const canGoPrevious = computed(() => historyIndex.value > 0)
+const canGoNext = computed(() => historyIndex.value >= 0 && historyIndex.value < poemHistory.value.length - 1)
+const poemText = computed(() => poem.value ? `${poem.value.title}\n${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || m.value.anonymous}\n\n${poem.value.content.join('\n')}` : '')
 const searchHeading = computed(() => {
-  if (searching.value) return '正在翻阅诗卷…'
-  if (searchMessage.value && !results.value.length) return '寻诗提示'
-  return `寻得 ${results.value.length} 篇`
+  if (searching.value) return m.value.searching
+  if (searchMessage.value && !results.value.length) return m.value.searchHint
+  return `${m.value.found} ${results.value.length} ${m.value.articles}`
 })
+const quickWords = computed(() => uiLang.value === 'zh-Hant'
+  ? ['明月光', '思故鄉', '春風裡', '長安城', '李太白']
+  : ['明月光', '思故乡', '春风里', '长安城', '李太白'])
 
-async function getJSON(path) {
+async function getJSON(path, requestLang = poemLang.value) {
   const joiner = path.includes('?') ? '&' : '?'
-  const res = await fetch(`${API}${path}${joiner}lang=${lang.value}`)
+  const res = await fetch(`${API}${path}${joiner}lang=${requestLang}`)
   const data = await res.json().catch(() => null)
   if (!res.ok || data?.error) {
     const apiMessage = data?.error?.message
-    throw new Error(
-      apiMessage === 'q must be at least 3 characters'
-        ? '搜索关键词至少需要 3 个字'
-        : (apiMessage || `请求失败（${res.status}）`)
-    )
+    throw new Error(apiMessage || `请求失败（${res.status}）`)
   }
   return data
 }
+
+function recordPoem(nextPoem) {
+  if (!nextPoem?.id) return
+  const currentId = poemHistory.value[historyIndex.value]
+  poem.value = nextPoem
+  if (currentId === nextPoem.id) return
+  poemHistory.value = poemHistory.value.slice(0, historyIndex.value + 1)
+  poemHistory.value.push(nextPoem.id)
+  historyIndex.value = poemHistory.value.length - 1
+}
+
 async function randomPoem() {
-  loading.value = true; error.value = ''
+  loading.value = true
+  error.value = ''
   try {
     const p = new URLSearchParams()
     if (dynasty.value) p.set('dynasty', dynasty.value)
     if (type.value) p.set('type', type.value)
     const data = await getJSON(`/api/poems/random${p.size ? '?' + p : ''}`)
-    poem.value = data.data
-  } catch (e) { error.value = e.message || '诗意暂时走远了，请稍后重试。' }
-  finally { loading.value = false }
+    recordPoem(data.data)
+  } catch (e) {
+    error.value = e.message || m.value.loadFailed
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadPoemById(id) {
+  const data = await getJSON(`/api/poems/${id}`)
+  poem.value = data.data
+}
+
+async function moveHistory(step) {
+  const targetIndex = historyIndex.value + step
+  if (loading.value || targetIndex < 0 || targetIndex >= poemHistory.value.length) return
+
+  loading.value = true
+  error.value = ''
+  try {
+    const targetId = poemHistory.value[targetIndex]
+    await loadPoemById(targetId)
+    historyIndex.value = targetIndex
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } catch (_) {
+    error.value = m.value.neighborFailed
+  } finally {
+    loading.value = false
+  }
 }
 async function searchPoems() {
   const keyword = query.value.trim()
   searched.value = true
   results.value = []
   searchMessage.value = ''
-
-  if (!keyword) {
-    searchMessage.value = '请输入搜索内容。'
-    return
-  }
-  if ([...keyword].length < 3) {
-    searchMessage.value = '诗泉搜索接口要求至少 3 个字，请输入更完整的诗句、标题或作者信息。'
-    return
-  }
+  if (!keyword) { searchMessage.value = m.value.enterSearch; return }
+  if ([...keyword].length < 3) { searchMessage.value = m.value.minSearch; return }
 
   searching.value = true
   try {
     const p = new URLSearchParams({ q: keyword, type: searchType.value })
     const data = await getJSON(`/api/search?${p}`)
     results.value = Array.isArray(data?.data) ? data.data : []
-    if (!results.value.length) searchMessage.value = '没有寻到相关诗句，换个关键词试试吧。'
-  } catch (e) {
-    searchMessage.value = e.message || '搜索暂时不可用，请稍后重试。'
+    if (!results.value.length) searchMessage.value = m.value.noResult
+  } catch (_) {
+    searchMessage.value = m.value.searchUnavailable
   } finally {
     searching.value = false
   }
 }
-function showPoem(p) { poem.value = p; searched.value = false; window.scrollTo({ top: 0, behavior: 'smooth' }) }
+
+function showPoem(p) {
+  recordPoem(p)
+  searched.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 function toggleFavorite() {
   if (!poem.value) return
   const i = favorites.value.findIndex(p => p.id === poem.value.id)
   i >= 0 ? favorites.value.splice(i, 1) : favorites.value.unshift(poem.value)
   localStorage.setItem('poetry-favorites', JSON.stringify(favorites.value))
 }
+
 async function copyPoem() {
-  await navigator.clipboard.writeText(poemText.value); copied.value = true
+  await navigator.clipboard.writeText(poemText.value)
+  copied.value = true
   setTimeout(() => copied.value = false, 1600)
 }
-async function changeLang() {
-  const currentPoemId = poem.value?.id
+
+async function setPoemLang(nextLang) {
+  if (poemLang.value === nextLang || !poem.value?.id) return
+  poemLang.value = nextLang
   loading.value = true
   error.value = ''
-  searchMessage.value = ''
-
   try {
-    const tasks = [loadFilters()]
-    if (currentPoemId) {
-      tasks.push(
-        getJSON(`/api/poems/${currentPoemId}`).then(data => {
-          poem.value = data.data
-        })
-      )
-    } else {
-      tasks.push(randomPoem())
-    }
-    await Promise.all(tasks)
-
-    if (searched.value && query.value.trim().length >= 3) {
-      await searchPoems()
-    }
-  } catch (e) {
-    error.value = e.message || '语言切换失败，请稍后重试。'
+    await loadPoemById(poem.value.id)
+    if (searched.value && query.value.trim().length >= 3) await searchPoems()
+  } catch (_) {
+    error.value = m.value.switchFailed
   } finally {
     loading.value = false
   }
 }
+
+async function changeUiLang() {
+  poemLang.value = uiLang.value
+  dynasty.value = ''
+  type.value = ''
+  searchMessage.value = ''
+  loading.value = true
+  error.value = ''
+  try {
+    await Promise.all([
+      loadFilters(),
+      poem.value?.id ? loadPoemById(poem.value.id) : randomPoem()
+    ])
+    if (searched.value && query.value.trim().length >= 3) await searchPoems()
+  } catch (_) {
+    error.value = m.value.switchFailed
+  } finally {
+    loading.value = false
+  }
+}
+
 async function loadFilters() {
   try {
     const [d, t] = await Promise.all([getJSON('/api/dynasties'), getJSON('/api/types')])
-    dynasties.value = d.data || []; types.value = t.data || []
+    dynasties.value = d.data || []
+    types.value = t.data || []
   } catch (_) {}
 }
+
 onMounted(() => Promise.all([randomPoem(), loadFilters()]))
 </script>
 
 <template>
   <div class="app-shell">
     <header class="nav wrap">
-      <a class="brand" href="#" @click.prevent="randomPoem"><span class="seal">诗</span><span><b>诗笺</b><small>一卷诗心，半生清欢</small></span></a>
+      <a class="brand" href="#" @click.prevent="randomPoem">
+        <span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span>
+        <span><b>{{ m.brand }}</b><small>{{ m.slogan }}</small></span>
+      </a>
       <nav>
-        <a class="active" href="#today">今日一诗</a><a href="#explore">寻诗</a><a href="#favorites">收藏 <i v-if="favorites.length">{{ favorites.length }}</i></a>
+        <a class="active" href="#today">{{ m.today }}</a>
+        <a href="#explore">{{ m.explore }}</a>
+        <a href="#favorites">{{ m.favorite }} <i v-if="favorites.length">{{ favorites.length }}</i></a>
       </nav>
       <div class="nav-actions">
-        <div class="language-picker" title="切换诗词简繁体">
+        <div class="language-picker" :title="m.languageTitle">
           <Languages :size="17" />
-          <select v-model="lang" @change="changeLang" aria-label="选择简体或繁体中文">
+          <select v-model="uiLang" @change="changeUiLang" :aria-label="m.languageAria">
             <option value="zh-Hans">简体中文</option>
             <option value="zh-Hant">繁體中文</option>
           </select>
           <ChevronDown :size="13" />
         </div>
-        <a class="icon-button" href="https://github.com/palemoky/chinese-poetry-api" target="_blank" title="项目源码"><Github :size="19" /></a>
+        <a class="icon-button" href="https://github.com/palemoky/chinese-poetry-api" target="_blank" rel="noopener" :title="m.apiLink"><Github :size="19" /></a>
       </div>
     </header>
 
     <main>
       <section id="today" class="hero wrap">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span> 每日，与古人相逢</p>
-          <h1>读一首诗，<br><em>见一方天地。</em></h1>
-          <p class="intro">从近四十万首古典诗词中，撷取一瞬风月。<br>愿字句越过千年，恰好落在你的心上。</p>
+          <p class="eyebrow"><span></span> {{ m.meet }}</p>
+          <h1>{{ m.hero1 }}<br><em>{{ m.hero2 }}</em></h1>
+          <p class="intro">{{ m.intro1 }}<br>{{ m.intro2 }}</p>
           <div class="filters">
-            <label>朝代<div class="select-wrap"><select v-model="dynasty"><option value="">不限朝代</option><option v-for="d in dynasties" :key="d.id">{{ d.name }}</option></select><ChevronDown :size="15" /></div></label>
-            <label>体裁<div class="select-wrap"><select v-model="type"><option value="">不限体裁</option><option v-for="t in types" :key="t.id">{{ t.name }}</option></select><ChevronDown :size="15" /></div></label>
-            <button class="primary" @click="randomPoem"><Shuffle :size="17" /> 随缘一首</button>
+            <label>{{ m.dynasty }}<div class="select-wrap"><select v-model="dynasty"><option value="">{{ m.allDynasties }}</option><option v-for="d in dynasties" :key="d.id">{{ d.name }}</option></select><ChevronDown :size="15" /></div></label>
+            <label>{{ m.genre }}<div class="select-wrap"><select v-model="type"><option value="">{{ m.allGenres }}</option><option v-for="t in types" :key="t.id">{{ t.name }}</option></select><ChevronDown :size="15" /></div></label>
+            <button class="primary" @click="randomPoem"><Shuffle :size="17" /> {{ m.random }}</button>
           </div>
         </div>
 
         <div class="poem-stage">
           <span class="sun"></span><span class="mountain m1"></span><span class="mountain m2"></span>
-          <article class="poem-card">
-            <div v-if="loading" class="state"><RotateCw class="spin" :size="28"/><span>正在山水间寻诗…</span></div>
-            <div v-else-if="error && !poem" class="state"><span>{{ error }}</span><button @click="randomPoem">再试一次</button></div>
-            <template v-else-if="poem">
-              <div class="card-top"><span>{{ poem.type?.name || '古诗词' }}</span><button @click="toggleFavorite" :class="{liked:isFavorite}"><Heart :size="19" :fill="isFavorite ? 'currentColor' : 'none'"/></button></div>
-              <div class="poem-body">
-                <h2>{{ poem.title }}</h2><p class="byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || '佚名' }}</p>
-                <div class="verses"><p v-for="(line,i) in poem.content" :key="i">{{ line }}</p></div>
+          <div class="poem-column">
+            <article class="poem-card">
+              <div v-if="loading" class="state"><RotateCw class="spin" :size="28"/><span>{{ m.finding }}</span></div>
+              <div v-else-if="error && !poem" class="state"><span>{{ error }}</span><button @click="randomPoem">{{ m.retry }}</button></div>
+              <template v-else-if="poem">
+                <div class="card-top"><span>{{ poem.type?.name || m.poetry }}</span><button @click="toggleFavorite" :class="{liked:isFavorite}"><Heart :size="19" :fill="isFavorite ? 'currentColor' : 'none'"/></button></div>
+                <div class="poem-body">
+                  <h2>{{ poem.title }}</h2><p class="byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
+                  <div class="verses"><p v-for="(line,i) in poem.content" :key="i">{{ line }}</p></div>
+                </div>
+                <p class="script-note"><Info :size="14"/> {{ m.scriptNote }}</p>
+                <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div>
+              </template>
+            </article>
+
+            <div class="poem-controls" v-if="poem">
+              <div class="adjacent-controls">
+                <button @click="moveHistory(-1)" :disabled="loading || !canGoPrevious"><ChevronLeft :size="17"/> {{ m.previous }}</button>
+                <button @click="moveHistory(1)" :disabled="loading || !canGoNext">{{ m.next }} <ChevronRight :size="17"/></button>
               </div>
-              <p class="script-note"><Info :size="14"/> 简繁转换或因合并字与古籍原文有异，建议对照阅读。</p>
-              <div class="card-bottom"><span>第 {{ poem.id }} 号诗笺</span><button @click="copyPoem"> <Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? '已抄录' : '抄录全诗' }}</button></div>
-            </template>
-          </article>
+              <div class="poem-language" role="group" :aria-label="m.poemScript">
+                <span>{{ m.poemScript }}</span>
+                <button :class="{active:poemLang === 'zh-Hans'}" @click="setPoemLang('zh-Hans')">简体</button>
+                <button :class="{active:poemLang === 'zh-Hant'}" @click="setPoemLang('zh-Hant')">繁體</button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       <section id="explore" class="explore">
         <div class="wrap narrow">
-          <p class="section-kicker"><Sparkles :size="16"/> 寻章摘句</p><h2>心有所念，诗有所应</h2><p>输入至少三个字的诗句、标题或作者信息，去浩瀚诗海里寻觅。</p>
-          <form class="searchbox" @submit.prevent="searchPoems"><Search :size="21"/><input v-model="query" placeholder="试试「明月光」「春风里」或「李太白」…"><select v-model="searchType"><option value="all">全文</option><option value="title">标题</option><option value="content">正文</option><option value="author">作者</option></select><button>寻诗</button></form>
-          <div class="quick"><span>不知寻什么？</span><button v-for="q in ['明月光','思故乡','春风里','长安城','李太白']" :key="q" @click="query=q;searchPoems()">{{ q }}</button></div>
+          <p class="section-kicker"><Sparkles :size="16"/> {{ m.searchKicker }}</p><h2>{{ m.searchTitle }}</h2><p>{{ m.searchDesc }}</p>
+          <form class="searchbox" @submit.prevent="searchPoems"><Search :size="21"/><input v-model="query" :placeholder="m.placeholder"><select v-model="searchType"><option value="all">{{ m.all }}</option><option value="title">{{ m.title }}</option><option value="content">{{ m.content }}</option><option value="author">{{ m.author }}</option></select><button>{{ m.search }}</button></form>
+          <div class="quick"><span>{{ m.suggestions }}</span><button v-for="q in quickWords" :key="q" @click="query=q;searchPoems()">{{ q }}</button></div>
 
           <div v-if="searched" class="results">
-            <div class="results-head"><b>{{ searchHeading }}</b><button @click="searched=false"><X :size="18"/> 收起</button></div>
-            <div v-if="!searching && results.length" class="result-grid"><button v-for="p in results.slice(0,12)" :key="p.id" class="result-card" @click="showPoem(p)"><span>{{ p.dynasty?.name }} · {{ p.author?.name }}</span><h3>{{ p.title }}</h3><p>{{ p.content?.slice(0,2).join(' ') }}</p><i>展开诗笺 →</i></button></div>
-            <div v-else-if="!searching" class="empty"><BookOpen :size="34"/><p>{{ searchMessage || '没有寻到相关诗句，换个关键词试试吧。' }}</p></div>
+            <div class="results-head"><b>{{ searchHeading }}</b><button @click="searched=false"><X :size="18"/> {{ m.collapse }}</button></div>
+            <div v-if="!searching && results.length" class="result-grid"><button v-for="p in results.slice(0,12)" :key="p.id" class="result-card" @click="showPoem(p)"><span>{{ p.dynasty?.name }} · {{ p.author?.name }}</span><h3>{{ p.title }}</h3><p>{{ p.content?.slice(0,2).join(' ') }}</p><i>{{ m.openSheet }}</i></button></div>
+            <div v-else-if="!searching" class="empty"><BookOpen :size="34"/><p>{{ searchMessage || m.noResult }}</p></div>
           </div>
         </div>
       </section>
 
       <section id="favorites" v-if="favorites.length" class="favorites wrap narrow">
-        <p class="section-kicker"><Heart :size="16"/> 私藏诗笺</p><h2>曾与你相逢的诗</h2>
+        <p class="section-kicker"><Heart :size="16"/> {{ m.favoritesKicker }}</p><h2>{{ m.favoritesTitle }}</h2>
         <div class="fav-row"><button v-for="p in favorites.slice(0,8)" :key="p.id" @click="showPoem(p)"><small>{{p.dynasty?.name}} · {{p.author?.name}}</small><b>{{p.title}}</b></button></div>
       </section>
     </main>
 
-    <footer><div class="wrap"><div class="brand mini"><span class="seal">诗</span><b>诗笺</b></div><p>数据由「诗泉」API 提供 · 字句有尽，诗意无穷</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> 我的项目</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">诗泉 API ↗</a></div></div></footer>
+    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
   </div>
 </template>

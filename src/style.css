@@ -163,3 +163,108 @@
     gap: 12px;
   }
 }
+
+/* 诗笺下方：相邻诗词与独立简繁转换 */
+.poem-column {
+  position: relative;
+  z-index: 1;
+  width: 420px;
+}
+
+.poem-column .poem-card {
+  width: 100%;
+}
+
+.poem-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,253,247,.76);
+  box-shadow: 0 12px 30px rgba(50,47,38,.08);
+  backdrop-filter: blur(10px);
+}
+
+.adjacent-controls,
+.poem-language {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.poem-controls button {
+  min-height: 32px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  transition: .2s ease;
+}
+
+.poem-controls button:hover:not(:disabled) {
+  color: var(--red);
+  border-color: rgba(168,62,50,.22);
+  background: rgba(168,62,50,.04);
+}
+
+.poem-controls button:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+.poem-language {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.poem-language > span {
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.poem-language button.active {
+  color: white;
+  background: var(--red);
+  border-color: var(--red);
+}
+
+@media (max-width: 540px) {
+  .poem-column {
+    width: 100%;
+  }
+
+  .poem-controls {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .adjacent-controls {
+    justify-content: space-between;
+  }
+
+  .adjacent-controls button {
+    flex: 1;
+    border-color: var(--line);
+  }
+
+  .poem-language {
+    justify-content: flex-end;
+    padding: 9px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .poem-language > span {
+    margin-right: auto;
+  }
+}
