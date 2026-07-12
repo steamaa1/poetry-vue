@@ -60,7 +60,7 @@ export const yajiZhHant = {
   riddle: '詩謎尋蹤', riddleDesc: '隱去詩題或詩人，循字句猜其來處',
   fill: '補闕成章', fillDesc: '補全缺落字句，使詩章復原', preparing: '籌備中',
   menu: '雅集目錄', source: '項目源碼', status: 'API 狀態',
-  navHome: '隨閱', navDaily: '日課', navGames: '雅戲', navMenu: '目錄',
+  navHome: '詩箋', navDaily: '日課', navGames: '雅戲', navMenu: '目錄',
   languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', closeMenu: '關閉選單',
   siteDirectory: '詩箋目錄', directoryHome: '詩箋隨閱', directoryHomeDesc: '首頁',
   elegantGathering: '詩趣雅集', elegantGatheringDesc: '每日一詩與詩詞互動合集',

@@ -29,7 +29,7 @@ const zhHans = {
   riddle: '诗谜寻踪', riddleDesc: '隐去诗题或诗人，循字句猜其来处',
   fill: '补阙成章', fillDesc: '补全缺落字句，使诗章复原', preparing: '筹备中',
   menu: '雅集目录', source: '项目源码', status: 'API 状态',
-  navHome: '随阅', navDaily: '日课', navGames: '雅戏', navMenu: '目录',
+  navHome: '诗笺', navDaily: '日课', navGames: '雅戏', navMenu: '目录',
   languageTitle: '切换整个网页语言', languageAria: '选择网页语言', closeMenu: '关闭菜单',
   siteDirectory: '诗笺目录', directoryHome: '诗笺随阅', directoryHomeDesc: '首页',
   elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集',
@@ -602,7 +602,7 @@ onBeforeUnmount(() => {
 
     <nav class="mobile-bottom-nav yaji-bottom-nav" :aria-label="m.games">
       <button @click="scrollToSection('#daily')"><CalendarDays :size="20" /><span>{{ m.navDaily }}</span></button>
-      <button @click="scrollToSection('#daily-sheet')"><Home :size="20" /><span>{{ m.navHome }}</span></button>
+      <button @click="scrollToSection('#daily-sheet')"><BookOpen :size="20" /><span>{{ m.navHome }}</span></button>
       <button :class="{ active: gameSheetOpen }" @click="gameSheetOpen = true"><Gamepad2 :size="20" /><span>{{ m.navGames }}</span></button>
     </nav>
 

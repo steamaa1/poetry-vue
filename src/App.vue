@@ -6,7 +6,7 @@ import SiteFooter from './components/SiteFooter.vue'
 import { downloadPoemCard } from './utils/poemCard.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Gamepad2
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Gamepad2
 } from 'lucide-vue-next'
 
 const API = ''
@@ -947,7 +947,7 @@ onBeforeUnmount(() => {
       <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
       <button :class="{active:mobileSearchOpen}" @click="mobileSearchOpen = true"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
       <button :class="{active:mobileSeaOpen}" @click="mobileSeaOpen = true"><Waves :size="20"/><span>{{ m.mobileNavSea }}</span></button>
-      <button @click="navigateTo('/yaji.html')"><Gamepad2 :size="20"/><span>{{ m.elegantGathering }}</span></button>
+      <button @click="goToSection(favorites.length ? '#favorites' : '#today')"><Bookmark :size="20"/><span>{{ m.mobileNavFavorite }}</span><i v-if="favorites.length">{{ favorites.length }}</i></button>
     </nav>
 
     <div v-if="mobileSeaOpen || mobileSearchOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
