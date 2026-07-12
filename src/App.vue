@@ -289,7 +289,7 @@ onMounted(() => {
           </select>
           <ChevronDown :size="13" />
         </div>
-        <a class="icon-button" href="https://github.com/palemoky/chinese-poetry-api" target="_blank" rel="noopener" :title="m.apiLink"><Github :size="19" /></a>
+        <a class="icon-button" href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener" :title="m.myProject"><Github :size="19" /></a>
       </div>
     </header>
 
