@@ -24,7 +24,7 @@ const zhHans = {
   solitaire: '联句续章', solitaireDesc: '承前句余韵，续写下一章',
   solitaireKicker: '承句续章', solitairePrompt: '请接下一句', solitairePlaceholder: '写下你记得的下一句…',
   solitaireSubmit: '对句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '对句相合，正是此句。',
-  solitaireWrong: '尚有一字之差，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
+  solitaireOneOff: '尚有一字之差，再想想。', solitaireNear: '已有几分相近，仍有数处不同。', solitaireFar: '与原句相去较远，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
   solitaireUnavailable: '暂时未寻到合适的联句，请再试一次。', solitaireScore: '答对 {correct} / 已答 {total}', solitaireEmpty: '请先写下下一句。',
   riddle: '诗谜寻踪', riddleDesc: '隐去诗题或诗人，循字句猜其来处',
   fill: '补阙成章', fillDesc: '补全缺落字句，使诗章复原', preparing: '筹备中',
@@ -65,6 +65,7 @@ const solitaireInput = ref('')
 const solitaireState = ref('')
 const solitaireLoading = ref(false)
 const solitaireError = ref('')
+const solitaireCounted = ref(false)
 const solitaireCorrectCount = ref(Number.parseInt(localStorage.getItem('poetry-solitaire-correct') || '0', 10))
 const solitaireTotalCount = ref(Number.parseInt(localStorage.getItem('poetry-solitaire-total') || '0', 10))
 const streak = ref(1)
@@ -295,12 +296,38 @@ function normalizeVerse(value) {
   return String(value || '').normalize('NFKC').replace(/[\p{P}\p{Z}\s]/gu, '').toLocaleLowerCase()
 }
 
+function editDistance(left, right) {
+  const source = Array.from(left)
+  const target = Array.from(right)
+  const row = Array.from({ length: target.length + 1 }, (_, index) => index)
+  for (let sourceIndex = 1; sourceIndex <= source.length; sourceIndex++) {
+    let previous = row[0]
+    row[0] = sourceIndex
+    for (let targetIndex = 1; targetIndex <= target.length; targetIndex++) {
+      const current = row[targetIndex]
+      row[targetIndex] = source[sourceIndex - 1] === target[targetIndex - 1]
+        ? previous
+        : Math.min(previous, row[targetIndex - 1], current) + 1
+      previous = current
+    }
+  }
+  return row[target.length]
+}
+
+function solitaireWrongMessage() {
+  const distance = editDistance(normalizeVerse(solitaireInput.value), normalizeVerse(solitaireAnswerLine.value))
+  if (distance === 1) return m.value.solitaireOneOff
+  if (distance <= 3) return m.value.solitaireNear
+  return m.value.solitaireFar
+}
+
 async function loadSolitaireQuestion() {
   if (solitaireLoading.value) return
   solitaireLoading.value = true
   solitaireError.value = ''
   solitaireInput.value = ''
   solitaireState.value = ''
+  solitaireCounted.value = false
   try {
     let candidate = null
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -327,10 +354,13 @@ function submitSolitaire() {
   }
   const correct = normalizeVerse(solitaireInput.value) === normalizeVerse(solitaireAnswerLine.value)
   solitaireState.value = correct ? 'correct' : 'wrong'
-  solitaireTotalCount.value++
-  if (correct) solitaireCorrectCount.value++
-  localStorage.setItem('poetry-solitaire-total', String(solitaireTotalCount.value))
-  localStorage.setItem('poetry-solitaire-correct', String(solitaireCorrectCount.value))
+  if (!solitaireCounted.value) {
+    solitaireCounted.value = true
+    solitaireTotalCount.value++
+    if (correct) solitaireCorrectCount.value++
+    localStorage.setItem('poetry-solitaire-total', String(solitaireTotalCount.value))
+    localStorage.setItem('poetry-solitaire-correct', String(solitaireCorrectCount.value))
+  }
 }
 
 function revealSolitaire() {
@@ -523,7 +553,7 @@ onBeforeUnmount(() => {
               </form>
               <div v-if="solitaireState" :class="['solitaire-feedback', solitaireState]">
                 <p v-if="solitaireState === 'correct'">{{ m.solitaireCorrect }}</p>
-                <p v-else-if="solitaireState === 'wrong'">{{ m.solitaireWrong }}</p>
+                <p v-else-if="solitaireState === 'wrong'">{{ solitaireWrongMessage() }}</p>
                 <p v-else-if="solitaireState === 'empty'">{{ m.solitaireEmpty }}</p>
                 <template v-else><small>{{ m.solitaireAnswer }}</small><strong>{{ solitaireAnswerLine }}</strong></template>
               </div>
