@@ -77,7 +77,7 @@ const zhHans = {
     collapse: '收起', searchPrevious: '上一页', searchNext: '下一页', pageLabel: '第 {page} 页', openSheet: '展开诗笺 →', noResult: '没有寻到相关诗句，换个关键词试试吧。',
     enterSearch: '请输入搜索内容。', minSearch: '诗泉搜索接口要求至少 3 个字，请输入更完整的诗句、标题或作者信息。',
     searchUnavailable: '搜索暂时不可用，请稍后重试。', favoritesKicker: '私藏诗笺', favoritesTitle: '曾与你相逢的诗',
-    dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗',
+    dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗', apiStatus: 'API 状态',
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
     seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
@@ -144,12 +144,44 @@ function highlightedParts(text) {
   return parts.length ? parts : [{ text: source, match: false }]
 }
 
+const REQUEST_TIMEOUT = 10000
+const REQUEST_RETRIES = 2
+
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
+
+async function fetchWithRetry(url, options = {}) {
+  let lastError
+  for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt++) {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal })
+      clearTimeout(timeoutId)
+
+      // 仅对临时性故障重试；参数错误、404 等直接返回给业务层。
+      if ((response.status === 408 || response.status === 429 || response.status >= 500) && attempt < REQUEST_RETRIES) {
+        await wait(500 * (attempt + 1))
+        continue
+      }
+      return response
+    } catch (error) {
+      clearTimeout(timeoutId)
+      lastError = error
+      if (attempt >= REQUEST_RETRIES) break
+      await wait(500 * (attempt + 1))
+    }
+  }
+
+  if (lastError?.name === 'AbortError') throw new Error('请求超时，请稍后重试。')
+  throw new Error('网络连接失败，请稍后重试。')
+}
+
 async function getJSON(path, requestLang = poemLang.value) {
   const joiner = path.includes('?') ? '&' : '?'
-  const res = await fetch(`${API}${path}${joiner}lang=${requestLang}`)
+  const res = await fetchWithRetry(`${API}${path}${joiner}lang=${requestLang}`)
   const data = await res.json().catch(() => null)
   if (!res.ok || data?.error) {
-    const apiMessage = data?.error?.message
+    const apiMessage = data?.error?.message || data?.message
     throw new Error(apiMessage || `请求失败（${res.status}）`)
   }
   return data
@@ -896,6 +928,6 @@ onBeforeUnmount(() => {
       <button :class="{current:seaTab === 'types'}" @click="goToSeaTab('types')"><LibraryBig :size="21"/><span><b>{{ m.typesTab }}</b><small>{{ m.typesMenuDesc }}</small></span><ChevronRight :size="17"/></button>
     </aside>
 
-    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
+    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="/status.html">{{ m.apiStatus }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
   </div>
 </template>

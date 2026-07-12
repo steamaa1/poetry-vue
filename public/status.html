@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#a83e32">
+  <meta name="description" content="诗笺 API 与 Cloudflare Pages 代理状态检测">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>诗笺 · API 状态</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap');
+    :root{--ink:#20231f;--muted:#77786f;--paper:#f7f4ec;--red:#a83e32;--green:#49655a;--line:rgba(45,47,41,.14);--ok:#3d725b;--bad:#a83e32}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--ink);background:var(--paper);font-family:'Noto Serif SC',serif;background-image:radial-gradient(rgba(48,50,44,.045) .7px,transparent .7px);background-size:8px 8px}html[lang="zh-Hant"] body{font-family:'Noto Serif TC',serif}
+    .wrap{width:min(880px,calc(100% - 32px));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand,.back{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}.seal{display:grid;place-items:center;width:36px;height:40px;border-radius:3px;background:var(--red);color:#fffaf0;font-size:21px}.brand b{letter-spacing:.15em}.back{font-size:12px;color:var(--muted)}
+    main{padding:72px 0 90px}.eyebrow{color:var(--red);font-size:12px;letter-spacing:.18em}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:34px}.hero h1{margin:14px 0 10px;font-size:42px;font-weight:500}.hero p{margin:0;color:var(--muted);line-height:1.8}.check{height:42px;padding:0 18px;border:0;background:var(--ink);color:white;cursor:pointer}.check:disabled{opacity:.55;cursor:wait}
+    .summary{display:flex;align-items:center;gap:14px;padding:20px;margin-bottom:16px;border:1px solid var(--line);background:rgba(255,255,255,.38)}.dot{width:12px;height:12px;border-radius:50%;background:#aaa;box-shadow:0 0 0 6px rgba(100,100,100,.08)}.summary.ok .dot{background:var(--ok);box-shadow:0 0 0 6px rgba(61,114,91,.1)}.summary.bad .dot{background:var(--bad);box-shadow:0 0 0 6px rgba(168,62,50,.1)}.summary b{display:block}.summary small{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card{min-height:150px;padding:20px;border:1px solid var(--line);background:rgba(255,255,255,.42)}.card-top{display:flex;align-items:center;justify-content:space-between}.badge{padding:3px 8px;border-radius:20px;background:rgba(100,100,100,.08);color:var(--muted);font-size:10px}.card.ok .badge{color:var(--ok);background:rgba(61,114,91,.1)}.card.bad .badge{color:var(--bad);background:rgba(168,62,50,.1)}.card h2{margin:18px 0 7px;font-size:18px}.card p{margin:0;color:var(--muted);font-size:11px;line-height:1.7}.meta{display:flex;justify-content:space-between;margin-top:18px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}.foot{margin-top:22px;text-align:center;color:var(--muted);font-size:10px;line-height:1.8}
+    @media(max-width:620px){main{padding-top:48px}.hero{align-items:flex-start;flex-direction:column}.hero h1{font-size:34px}.check{width:100%}.grid{grid-template-columns:1fr}.nav{height:68px}}
+  </style>
+</head>
+<body>
+  <header class="nav wrap"><a class="brand" href="/"><span class="seal" id="seal">诗</span><b id="brand">诗笺</b></a><a class="back" href="/" id="back">← 返回首页</a></header>
+  <main class="wrap">
+    <div class="hero"><div><div class="eyebrow" id="eyebrow">服务状态</div><h1 id="title">API 状态</h1><p id="description">检测诗泉 API 与本站 Cloudflare Pages 代理的可用性。</p></div><button class="check" id="check">重新检测</button></div>
+    <section class="summary" id="summary"><span class="dot"></span><div><b id="summaryTitle">等待检测</b><small id="summaryText">正在准备检测服务状态…</small></div></section>
+    <section class="grid" id="grid"></section>
+    <p class="foot" id="foot">请求超时 10 秒；网络错误、429 与服务器错误最多自动重试 2 次。<br>本页面检测的是本站同源代理，因此可同时反映上游 API 与 Pages Function 状态。</p>
+  </main>
+  <script>
+    const messages={
+      'zh-Hans':{seal:'诗',brand:'诗笺',back:'← 返回首页',eyebrow:'服务状态',title:'API 状态',description:'检测诗泉 API 与本站 Cloudflare Pages 代理的可用性。',check:'重新检测',checking:'检测中…',waiting:'等待检测',preparing:'正在准备检测服务状态…',allGood:'所有服务运行正常',partial:'部分服务暂时异常',allGoodText:'全部检测端点均可正常响应。',partialText:'请稍后重试，或检查诗泉上游服务。',online:'正常',offline:'异常',latency:'响应延迟',status:'HTTP 状态',foot:'请求超时 10 秒；网络错误、429 与服务器错误最多自动重试 2 次。<br>本页面检测的是本站同源代理，因此可同时反映上游 API 与 Pages Function 状态。',services:[['随机诗词','/api/poems/random','核心诗词推荐接口'],['诗词统计','/api/stats','数据概览接口'],['朝代列表','/api/dynasties','朝代时间轴数据'],['体裁列表','/api/types','体裁知识卡数据'],['诗词目录','/api/poems?page=1&pageSize=1','诗海分页浏览接口']]},
+      'zh-Hant':{seal:'詩',brand:'詩箋',back:'← 返回首頁',eyebrow:'服務狀態',title:'API 狀態',description:'檢測詩泉 API 與本站 Cloudflare Pages 代理的可用性。',check:'重新檢測',checking:'檢測中…',waiting:'等待檢測',preparing:'正在準備檢測服務狀態…',allGood:'所有服務運行正常',partial:'部分服務暫時異常',allGoodText:'全部檢測端點均可正常響應。',partialText:'請稍後重試，或檢查詩泉上游服務。',online:'正常',offline:'異常',latency:'響應延遲',status:'HTTP 狀態',foot:'請求超時 10 秒；網絡錯誤、429 與服務器錯誤最多自動重試 2 次。<br>本頁面檢測的是本站同源代理，因此可同時反映上游 API 與 Pages Function 狀態。',services:[['隨機詩詞','/api/poems/random','核心詩詞推薦接口'],['詩詞統計','/api/stats','資料概覽接口'],['朝代列表','/api/dynasties','朝代時間軸資料'],['體裁列表','/api/types','體裁知識卡資料'],['詩詞目錄','/api/poems?page=1&pageSize=1','詩海分頁瀏覽接口']]}
+    }
+    const saved=localStorage.getItem('poetry-ui-lang');const langs=navigator.languages?.length?navigator.languages:[navigator.language||''];const traditional=langs.some(x=>/^(zh-Hant|zh-TW|zh-HK|zh-MO)(-|$)/i.test(x));const lang=['zh-Hans','zh-Hant'].includes(saved)?saved:(traditional?'zh-Hant':'zh-Hans');const m=messages[lang];document.documentElement.lang=lang
+    for(const id of ['seal','brand','back','eyebrow','title','description','check','foot'])document.getElementById(id).innerHTML=m[id]
+    const wait=ms=>new Promise(r=>setTimeout(r,ms))
+    async function request(url){let last;for(let attempt=0;attempt<=2;attempt++){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);const start=performance.now();try{const response=await fetch(url,{signal:controller.signal,cache:'no-store'});clearTimeout(timer);if((response.status===408||response.status===429||response.status>=500)&&attempt<2){await wait(500*(attempt+1));continue}return{ok:response.ok,status:response.status,latency:Math.round(performance.now()-start)}}catch(error){clearTimeout(timer);last=error;if(attempt<2){await wait(500*(attempt+1));continue}}}return{ok:false,status:last?.name==='AbortError'?'TIMEOUT':'NETWORK',latency:null}}
+    function renderCard(service,result){const article=document.createElement('article');article.className=`card ${result.ok?'ok':'bad'}`;article.innerHTML=`<div class="card-top"><code>${service[1]}</code><span class="badge">${result.ok?m.online:m.offline}</span></div><h2>${service[0]}</h2><p>${service[2]}</p><div class="meta"><span>${m.status}：${result.status}</span><span>${m.latency==null?'—':`${m.latency} ms`} · ${m.latency==null?'':m.latency}</span></div>`;return article}
+    async function run(){const button=document.getElementById('check'),grid=document.getElementById('grid'),summary=document.getElementById('summary');button.disabled=true;button.textContent=m.checking;summary.className='summary';document.getElementById('summaryTitle').textContent=m.waiting;document.getElementById('summaryText').textContent=m.preparing;grid.innerHTML='';const results=await Promise.all(m.services.map(async service=>[service,await request(service[1]) ]));results.forEach(([service,result])=>grid.appendChild(renderCard(service,result)));const ok=results.every(([,result])=>result.ok);summary.className=`summary ${ok?'ok':'bad'}`;document.getElementById('summaryTitle').textContent=ok?m.allGood:m.partial;document.getElementById('summaryText').textContent=ok?m.allGoodText:m.partialText;button.disabled=false;button.textContent=m.check}
+    document.getElementById('check').addEventListener('click',run);run()
+  </script>
+</body>
+</html>

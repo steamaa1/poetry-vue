@@ -15,7 +15,7 @@ const zhHant = {
     collapse: '收起', searchPrevious: '上一頁', searchNext: '下一頁', pageLabel: '第 {page} 頁', openSheet: '展開詩箋 →', noResult: '沒有尋到相關詩句，換個關鍵詞試試吧。',
     enterSearch: '請輸入搜索內容。', minSearch: '詩泉搜索接口要求至少 3 個字，請輸入更完整的詩句、標題或作者資訊。',
     searchUnavailable: '搜索暫時不可用，請稍後重試。', favoritesKicker: '私藏詩箋', favoritesTitle: '曾與你相逢的詩',
-    dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗',
+    dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiLink: '詩泉 API ↗', apiStatus: 'API 狀態',
     languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', loadFailed: '詩意暫時走遠了，請稍後重試。',
     switchFailed: '文字切換失敗，請稍後重試。', neighborFailed: '暫時無法返回這首詩箋。',
     seaNav: '詩海', seaKicker: '萬卷詩海', seaTitle: '一頁風雅，千年文章', seaDesc: '循資料觀詩脈，隨卷帙訪詩人。',
