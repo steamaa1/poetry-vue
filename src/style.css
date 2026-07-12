@@ -78,3 +78,88 @@
     margin: 10px 0;
   }
 }
+
+/* 简繁语言选择与古籍文本提示 */
+.language-picker {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255,255,255,.35);
+  color: var(--ink);
+}
+
+.language-picker select {
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.language-picker > svg:last-child {
+  pointer-events: none;
+  color: var(--muted);
+}
+
+.script-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 10px 0;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.script-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--red);
+}
+
+@media (max-width: 540px) {
+  .language-picker {
+    width: auto;
+    padding: 0 9px;
+  }
+
+  .language-picker select {
+    max-width: 74px;
+    font-size: 11px;
+  }
+
+  .script-note {
+    font-size: 9px;
+  }
+
+  .footer-links {
+    margin-left: auto;
+    gap: 12px;
+  }
+}
