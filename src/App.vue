@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import {
-  Search, Shuffle, Heart, Copy, Check, Share2, Github, Languages, ChevronDown,
+  Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, Github, Languages, ChevronDown,
   ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info
 } from 'lucide-vue-next'
 
@@ -42,7 +42,7 @@ const messages = {
     intro1: '从近四十万首古典诗词中，撷取一瞬风月。', intro2: '愿字句越过千年，恰好落在你的心上。',
     dynasty: '朝代', allDynasties: '不限朝代', genre: '体裁', allGenres: '不限体裁', random: '随缘一首',
     finding: '正在山水间寻诗…', retry: '再试一次', poetry: '古诗词', anonymous: '佚名', sheet: '号诗笺',
-    copied: '已抄录', copy: '抄录全诗', share: '分享诗词', shared: '已复制分享内容', previous: '上一首', next: '下一首', poemScript: '诗笺文字',
+    copied: '已抄录', copy: '抄录全诗', share: '分享诗词', shared: '已复制分享内容', translation: '查询译文', previous: '上一首', next: '下一首', poemScript: '诗笺文字',
     scriptNote: '简繁转换或因合并字与古籍原文有异，建议对照阅读。',
     searchKicker: '寻章摘句', searchTitle: '心有所念，诗有所应',
     searchDesc: '输入至少三个字的诗句、标题或作者信息，去浩瀚诗海里寻觅。',
@@ -61,7 +61,7 @@ const messages = {
     intro1: '從近四十萬首古典詩詞中，擷取一瞬風月。', intro2: '願字句越過千年，恰好落在你的心上。',
     dynasty: '朝代', allDynasties: '不限朝代', genre: '體裁', allGenres: '不限體裁', random: '隨緣一首',
     finding: '正在山水間尋詩…', retry: '再試一次', poetry: '古詩詞', anonymous: '佚名', sheet: '號詩箋',
-    copied: '已抄錄', copy: '抄錄全詩', share: '分享詩詞', shared: '已複製分享內容', previous: '上一首', next: '下一首', poemScript: '詩箋文字',
+    copied: '已抄錄', copy: '抄錄全詩', share: '分享詩詞', shared: '已複製分享內容', translation: '查詢譯文', previous: '上一首', next: '下一首', poemScript: '詩箋文字',
     scriptNote: '簡繁轉換或因合併字與古籍原文有異，建議對照閱讀。',
     searchKicker: '尋章摘句', searchTitle: '心有所念，詩有所應',
     searchDesc: '輸入至少三個字的詩句、標題或作者資訊，去浩瀚詩海裡尋覓。',
@@ -187,6 +187,14 @@ async function copyPoem() {
   await navigator.clipboard.writeText(poemText.value)
   copied.value = true
   setTimeout(() => copied.value = false, 1600)
+}
+
+function searchTranslation() {
+  if (!poem.value) return
+  const suffix = uiLang.value === 'zh-Hant' ? '譯文 賞析' : '译文 赏析'
+  const keyword = `《${poem.value.title}》 ${poem.value.author?.name || ''} ${suffix}`
+  const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(keyword)}`
+  window.open(searchUrl, '_blank', 'noopener,noreferrer')
 }
 
 async function sharePoem() {
@@ -319,7 +327,7 @@ onMounted(() => {
                   <div class="verses"><p v-for="(line,i) in poem.content" :key="i">{{ line }}</p></div>
                 </div>
                 <p v-if="poemLang === 'zh-Hans'" class="script-note"><Info :size="14"/> {{ m.scriptNote }}</p>
-                <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><div class="card-actions"><button @click="sharePoem"><Check v-if="shared" :size="16"/><Share2 v-else :size="16"/> {{ shared ? m.shared : m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div></div>
+                <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><div class="card-actions"><button @click="searchTranslation"><ExternalLink :size="16"/> {{ m.translation }}</button><button @click="sharePoem"><Check v-if="shared" :size="16"/><Share2 v-else :size="16"/> {{ shared ? m.shared : m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div></div>
               </template>
             </article>
 
