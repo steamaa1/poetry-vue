@@ -62,6 +62,7 @@ const flyingChar = ref('月')
 const flyingLoading = ref(false)
 const flyingError = ref('')
 const fullscreenReading = ref(false)
+const dictionaryMode = ref(false)
 const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
 const seaMenuOpen = ref(false)
 const searchMenuOpen = ref(false)
@@ -89,7 +90,7 @@ const zhHans = {
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
     flyingNav: '飞花令', searchMenuTitle: '寻章', searchMenuDesc: '全文检索诗题、诗句与作者', flyingMenuDesc: '拈一字，从诗海中随机寻诗', flyingKicker: '一字飞花', flyingTitle: '拈一字，寻一诗', flyingDesc: '输入一个汉字，从浩瀚诗海中随机寻找正文含有此字的诗。', flyingPlaceholder: '输入一个汉字', flyingAction: '行飞花令', flyingAgain: '再寻一首', flyingSingleChar: '飞花令只能输入一个汉字。', flyingFailed: '未寻到含此字的诗，请换一个字试试。', commonChars: '常用飞花字',
-    fullscreen: '全屏阅读', exitFullscreen: '退出全屏', immersiveReading: '沉浸阅读',
+    fullscreen: '全屏阅读', exitFullscreen: '退出全屏', immersiveReading: '沉浸阅读', dictionaryMode: '查字模式', dictionaryHint: '点击诗句中的汉字查询读音与释义', queryCharacter: '查询此字',
     seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
     statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', dynastiesTab: '朝代风华', typesTab: '诗体词牌', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
     dynastiesTitle: '朝代时间轴', dynastiesDesc: '循历史年轮，阅读不同朝代的诗意风华。', typesTitle: '体裁知识卡', typesDesc: '识诗体格律，于句读之间体会文体之美。',
@@ -523,6 +524,18 @@ async function changeUiLang() {
   }
 }
 
+function poemCharacters(line) {
+  return Array.from(String(line || '')).map(char => ({
+    char,
+    queryable: /\p{Script=Han}/u.test(char)
+  }))
+}
+
+function queryCharacter(char) {
+  if (!dictionaryMode.value || !/\p{Script=Han}/u.test(char)) return
+  window.open(`https://www.zdic.net/hans/${encodeURIComponent(char)}`, '_blank', 'noopener,noreferrer')
+}
+
 async function runFlyingGame() {
   const char = [...flyingChar.value.trim()][0] || ''
   if ([...flyingChar.value.trim()].length !== 1 || !/\p{Script=Han}/u.test(char)) {
@@ -846,7 +859,9 @@ onBeforeUnmount(() => {
                 <div class="card-top"><span>{{ poem.type?.name || m.poetry }}</span><button @click="toggleFavorite" :class="{liked:isFavorite}"><Heart :size="19" :fill="isFavorite ? 'currentColor' : 'none'"/></button></div>
                 <div class="poem-body">
                   <h2>{{ poem.title }}</h2><p class="byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
-                  <div class="verses"><p v-for="(line,i) in poem.content" :key="i">{{ line }}</p></div>
+                  <div :class="['verses',{dictionary:dictionaryMode}]">
+                    <p v-for="(line,i) in poem.content" :key="i"><template v-for="(part,j) in poemCharacters(line)" :key="j"><button v-if="part.queryable" type="button" class="query-char" :disabled="!dictionaryMode" :title="dictionaryMode ? `${m.queryCharacter}：${part.char}` : ''" @click="queryCharacter(part.char)">{{ part.char }}</button><span v-else>{{ part.char }}</span></template></p>
+                  </div>
                 </div>
                 <p v-if="poemLang === 'zh-Hans'" class="script-note"><Info :size="14"/> {{ m.scriptNote }}</p>
                 <div class="card-bottom"><span>第 {{ poem.id }} {{ m.sheet }}</span><div class="card-actions"><button @click="generatePoemCard" :disabled="generatingCard"><Check v-if="cardSaved" :size="16"/><RotateCw v-else-if="generatingCard" class="spin" :size="16"/><ImageDown v-else :size="16"/> {{ cardSaved ? m.cardSaved : (generatingCard ? m.generatingCard : m.generateCard) }}</button><button @click="searchTranslation"><ExternalLink :size="16"/> {{ m.translation }}</button><button @click="sharePoem"><Check v-if="shared" :size="16"/><Share2 v-else :size="16"/> {{ shared ? m.shared : m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="16"/><Copy v-else :size="16"/> {{ copied ? m.copied : m.copy }}</button></div></div>
@@ -859,12 +874,14 @@ onBeforeUnmount(() => {
                 <button @click="moveHistory(1)" :disabled="loading || !canGoNext">{{ m.next }} <ChevronRight :size="17"/></button>
               </div>
               <div class="poem-language" role="group" :aria-label="m.poemScript">
+                <button :class="['dictionary-button',{active:dictionaryMode}]" @click="dictionaryMode = !dictionaryMode"><Search :size="15"/> {{ m.dictionaryMode }}</button>
                 <button class="fullscreen-button" @click="enterFullscreenReading"><Maximize2 :size="15"/> {{ m.fullscreen }}</button>
                 <span>{{ m.poemScript }}</span>
                 <button :class="{active:poemLang === 'zh-Hans'}" @click="setPoemLang('zh-Hans')">{{ m.simplifiedShort }}</button>
                 <button :class="{active:poemLang === 'zh-Hant'}" @click="setPoemLang('zh-Hant')">{{ m.traditionalShort }}</button>
               </div>
             </div>
+            <p v-if="dictionaryMode" class="dictionary-hint"><Search :size="13"/> {{ m.dictionaryHint }}</p>
           </div>
         </div>
       </section>
@@ -1006,12 +1023,14 @@ onBeforeUnmount(() => {
     </main>
 
     <div v-if="fullscreenReading && poem" ref="readingOverlay" class="reading-overlay" :lang="poemLang">
-      <button class="reading-close" @click="exitFullscreenReading"><Minimize2 :size="19"/> {{ m.exitFullscreen }}</button>
+      <div class="reading-tools"><button :class="{active:dictionaryMode}" @click="dictionaryMode = !dictionaryMode"><Search :size="18"/> {{ m.dictionaryMode }}</button><button class="reading-close" @click="exitFullscreenReading"><Minimize2 :size="19"/> {{ m.exitFullscreen }}</button></div>
       <div class="reading-paper">
         <span class="reading-kicker">{{ m.immersiveReading }}</span>
         <h2>{{ poem.title }}</h2>
         <p class="reading-byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
-        <div class="reading-verses"><p v-for="(line,index) in poem.content" :key="index">{{ line }}</p></div>
+        <div :class="['reading-verses',{dictionary:dictionaryMode}]">
+          <p v-for="(line,index) in poem.content" :key="index"><template v-for="(part,j) in poemCharacters(line)" :key="j"><button v-if="part.queryable" type="button" class="query-char" :disabled="!dictionaryMode" :title="dictionaryMode ? `${m.queryCharacter}：${part.char}` : ''" @click="queryCharacter(part.char)">{{ part.char }}</button><span v-else>{{ part.char }}</span></template></p>
+        </div>
         <div class="reading-footer">
           <span class="reading-number">第 {{ poem.id }} {{ m.sheet }}</span>
           <div class="reading-signature">
