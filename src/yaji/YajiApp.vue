@@ -191,12 +191,105 @@ onMounted(() => {
     <main>
       <section class="hero wrap"><span>{{ m.slogan }}</span><h1>{{ m.daily }}</h1><p>{{ m.dailyDesc }}</p></section>
       <section id="daily" class="daily-layout wrap">
-        <aside class="calendar"><div class="calendar-head"><button @click="changeMonth(-1)"><ChevronLeft :size="16"/></button><b>{{ monthTitle }}</b><button @click="changeMonth(1)" :disabled="viewDate.getFullYear() === today.getFullYear() && viewDate.getMonth() >= today.getMonth()"><ChevronRight :size="16"/></button></div><div class="week"><span v-for="day in ['日','一','二','三','四','五','六']" :key="day">{{ day }}</span></div><div class="days"><template v-for="day in calendarDays" :key="day.key"><span v-if="day.blank"></span><button v-else :class="['day',{today:day.today,selected:day.selected,read:day.read}]" :disabled="day.future" @click="selectDate(day)">{{ day.number }}</button></template></div><div class="calendar-foot"><button @click="returnToday">{{ m.today }}</button><div class="streak">{{ m.streak.replace('{count}', streak) }}</div></div></aside>
+        <aside class="calendar">
+          <div class="calendar-head">
+            <button @click="changeMonth(-1)"><ChevronLeft :size="16" /></button>
+            <b>{{ monthTitle }}</b>
+            <button
+              @click="changeMonth(1)"
+              :disabled="viewDate.getFullYear() === today.getFullYear() && viewDate.getMonth() >= today.getMonth()"
+            ><ChevronRight :size="16" /></button>
+          </div>
+          <div class="week">
+            <span v-for="day in ['日','一','二','三','四','五','六']" :key="day">{{ day }}</span>
+          </div>
+          <div class="days">
+            <template v-for="day in calendarDays" :key="day.key">
+              <span v-if="day.blank"></span>
+              <button
+                v-else
+                :class="['day', { today: day.today, selected: day.selected, read: day.read }]"
+                :disabled="day.future"
+                @click="selectDate(day)"
+              >{{ day.number }}</button>
+            </template>
+          </div>
+          <div class="calendar-foot">
+            <button @click="returnToday">{{ m.today }}</button>
+            <div class="streak">{{ m.streak.replace('{count}', streak) }}</div>
+          </div>
+        </aside>
 
-        <div class="daily-stage"><span class="daily-sun"></span><span class="daily-mountain"></span><article class="poem-card"><div v-if="loading" class="state"><RotateCw class="spin" :size="27"/><span>{{ m.loading }}</span></div><div v-else-if="error || !poem" class="state"><span>{{ error || m.unread }}</span><button v-if="selectedKey === todayKey" @click="ensureToday">{{ m.retry }}</button></div><template v-else><div class="card-top"><span class="type">{{ poem.type?.name }}</span><button @click="toggleFavorite"><Heart :size="21" :fill="isFavorite ? 'currentColor' : 'none'/></button></div><div class="poem-body"><h2>{{ poem.title }}</h2><p class="byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p><div :class="['verses',{dictionary:dictionaryMode}]"><p v-for="(line,index) in poem.content" :key="index"><template v-for="(part,partIndex) in poemCharacters(line)" :key="partIndex"><button v-if="part.queryable" class="query-char" @click="queryCharacter(part.char)">{{ part.char }}</button><span v-else>{{ part.char }}</span></template></p></div></div><div class="tools"><button :class="{active:dictionaryMode}" @click="dictionaryMode = !dictionaryMode"><Search :size="14"/> {{ m.dictionary }}</button><button @click="enterFullscreen"><Maximize2 :size="14"/> {{ m.fullscreen }}</button><button @click="generateCard" :disabled="generating"><ImageDown :size="14"/> {{ m.generate }}</button><button @click="searchTranslation"><ExternalLink :size="14"/> {{ m.translation }}</button><button @click="sharePoem"><Share2 :size="14"/> {{ m.share }}</button><button @click="copyPoem"><Check v-if="copied" :size="14"/><Copy v-else :size="14"/> {{ copied ? m.copied : m.copy }}</button><a :href="`/?poem=${poem.id}`"><BookOpen :size="14"/> {{ m.openMain }}</a><select v-model="poemLang" @change="changePoemLanguage"><option value="zh-Hans">{{ m.simplified }}</option><option value="zh-Hant">{{ m.traditional }}</option></select></div><div class="card-bottom"><span>{{ selectedKey }}</span><div class="card-signature"><span class="mini-seal">{{ poemLang === 'zh-Hant' ? '詩' : '诗' }}</span><span><b>{{ m.brand }}</b><small>#{{ poem.id }}</small></span></div></div></template></article></div>
+        <div class="daily-stage">
+          <span class="daily-sun"></span>
+          <span class="daily-mountain"></span>
+          <article class="poem-card">
+            <div v-if="loading" class="state">
+              <RotateCw class="spin" :size="27" />
+              <span>{{ m.loading }}</span>
+            </div>
+            <div v-else-if="error || !poem" class="state">
+              <span>{{ error || m.unread }}</span>
+              <button v-if="selectedKey === todayKey" @click="ensureToday">{{ m.retry }}</button>
+            </div>
+            <template v-else>
+              <div class="card-top">
+                <span class="type">{{ poem.type?.name }}</span>
+                <button @click="toggleFavorite">
+                  <Heart :size="21" :fill="isFavorite ? 'currentColor' : 'none'" />
+                </button>
+              </div>
+
+              <div class="poem-body">
+                <h2>{{ poem.title }}</h2>
+                <p class="byline">{{ poem.dynasty?.name }} · {{ poem.author?.name || m.anonymous }}</p>
+                <div :class="['verses', { dictionary: dictionaryMode }]">
+                  <p v-for="(line, index) in poem.content" :key="index">
+                    <template v-for="(part, partIndex) in poemCharacters(line)" :key="partIndex">
+                      <button v-if="part.queryable" class="query-char" @click="queryCharacter(part.char)">{{ part.char }}</button>
+                      <span v-else>{{ part.char }}</span>
+                    </template>
+                  </p>
+                </div>
+              </div>
+
+              <div class="tools">
+                <button :class="{ active: dictionaryMode }" @click="dictionaryMode = !dictionaryMode"><Search :size="14" /> {{ m.dictionary }}</button>
+                <button @click="enterFullscreen"><Maximize2 :size="14" /> {{ m.fullscreen }}</button>
+                <button @click="generateCard" :disabled="generating"><ImageDown :size="14" /> {{ m.generate }}</button>
+                <button @click="searchTranslation"><ExternalLink :size="14" /> {{ m.translation }}</button>
+                <button @click="sharePoem"><Share2 :size="14" /> {{ m.share }}</button>
+                <button @click="copyPoem"><Check v-if="copied" :size="14" /><Copy v-else :size="14" /> {{ copied ? m.copied : m.copy }}</button>
+                <a :href="`/?poem=${poem.id}`"><BookOpen :size="14" /> {{ m.openMain }}</a>
+                <select v-model="poemLang" @change="changePoemLanguage">
+                  <option value="zh-Hans">{{ m.simplified }}</option>
+                  <option value="zh-Hant">{{ m.traditional }}</option>
+                </select>
+              </div>
+
+              <div class="card-bottom">
+                <span>{{ selectedKey }}</span>
+                <div class="card-signature">
+                  <span class="mini-seal">{{ poemLang === 'zh-Hant' ? '詩' : '诗' }}</span>
+                  <span><b>{{ m.brand }}</b><small>#{{ poem.id }}</small></span>
+                </div>
+              </div>
+            </template>
+          </article>
+        </div>
       </section>
 
-      <section id="games" class="games"><div class="wrap"><div class="games-head"><span>{{ m.games }}</span><h2>{{ m.games }}</h2><p>{{ m.gamesLead }}</p></div><div class="game-grid"><article class="game"><Gamepad2 :size="24"/><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p><span>{{ m.preparing }}</span></article><article class="game"><CircleHelp :size="24"/><h3>{{ m.riddle }}</h3><p>{{ m.riddleDesc }}</p><span>{{ m.preparing }}</span></article><article class="game"><BookOpen :size="24"/><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p><span>{{ m.preparing }}</span></article></div></div></section>
+      <section id="games" class="games">
+        <div class="wrap">
+          <div class="games-head"><span>{{ m.games }}</span><h2>{{ m.games }}</h2><p>{{ m.gamesLead }}</p></div>
+          <div class="game-grid">
+            <article class="game"><Gamepad2 :size="24" /><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p><span>{{ m.preparing }}</span></article>
+            <article class="game"><CircleHelp :size="24" /><h3>{{ m.riddle }}</h3><p>{{ m.riddleDesc }}</p><span>{{ m.preparing }}</span></article>
+            <article class="game"><BookOpen :size="24" /><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p><span>{{ m.preparing }}</span></article>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <nav class="bottom"><a href="/"><Home :size="19"/><span>{{ m.navHome }}</span></a><button @click="scrollTo('#daily')"><CalendarDays :size="19"/><span>{{ m.navDaily }}</span></button><button @click="scrollTo('#games')"><Gamepad2 :size="19"/><span>{{ m.navGames }}</span></button><button @click="menuOpen = !menuOpen"><Menu :size="19"/><span>{{ m.navMenu }}</span></button></nav>
