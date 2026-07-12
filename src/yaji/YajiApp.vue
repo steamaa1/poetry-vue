@@ -610,8 +610,8 @@ onBeforeUnmount(() => {
     <aside :class="['mobile-sea-sheet','yaji-game-sheet',{open:gameSheetOpen}]" :aria-hidden="!gameSheetOpen">
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.page }}</small><h3>{{ m.games }}</h3></div><button @click="gameSheetOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
-      <button @click="scrollToSection('#games')"><CircleHelp :size="21"/><span><b>{{ m.riddle }}</b><small>{{ m.riddleDesc }}</small></span><i>{{ m.preparing }}</i></button>
       <button @click="scrollToSection('#fill-game')"><BookOpen :size="21"/><span><b>{{ m.fill }}</b><small>{{ m.fillDesc }}</small></span></button>
+      <button @click="scrollToSection('#games')"><CircleHelp :size="21"/><span><b>{{ m.riddle }}</b><small>{{ m.riddleDesc }}</small></span><i>{{ m.preparing }}</i></button>
       <button @click="scrollToSection('#games')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
     </aside>
 
