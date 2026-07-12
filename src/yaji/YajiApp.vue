@@ -2,10 +2,12 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight,
-  CircleHelp, Copy, ExternalLink, Gamepad2, Github, Heart, Home, ImageDown,
-  Info, Languages, Maximize2, Menu, Minimize2, RotateCw, Search, Share2, X
+  CircleHelp, Copy, ExternalLink, Gamepad2, Heart, Home, ImageDown,
+  Info, Languages, Maximize2, Minimize2, RotateCw, Search, Share2, X
 } from 'lucide-vue-next'
 import { yajiZhHant } from '../locales/zh-Hant.js'
+import SiteDirectory from '../components/SiteDirectory.vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const zhHans = {
   brand: '诗笺', page: '诗趣雅集', slogan: '日课一诗，闲时雅戏', back: '诗笺随阅',
@@ -23,7 +25,12 @@ const zhHans = {
   fill: '补阙成章', fillDesc: '补全缺落字句，使诗章复原', preparing: '筹备中',
   menu: '雅集目录', source: '项目源码', status: 'API 状态',
   navHome: '随阅', navDaily: '日课', navGames: '雅戏', navMenu: '目录',
-  languageTitle: '切换整个网页语言', languageAria: '选择网页语言'
+  languageTitle: '切换整个网页语言', languageAria: '选择网页语言', closeMenu: '关闭菜单',
+  siteDirectory: '诗笺目录', directoryHome: '诗笺随阅', directoryHomeDesc: '首页',
+  elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集',
+  dailyPoem: '每日一诗', dailyPoemDesc: '每天固定相逢一首诗',
+  poetryInteraction: '诗词雅戏', poetryInteractionDesc: '联句、诗谜与补阙等诗词互动', projectSource: '项目源码',
+  dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiStatus: 'API 状态', apiLink: '诗泉 API ↗'
 }
 
 const browserLanguages = navigator.languages?.length ? navigator.languages : [navigator.language || '']
@@ -46,7 +53,7 @@ const fullscreenReading = ref(false)
 const copied = ref(false)
 const shared = ref(false)
 const generating = ref(false)
-const menuOpen = ref(false)
+const gameSheetOpen = ref(false)
 const streak = ref(1)
 const favoriteList = ref(JSON.parse(localStorage.getItem('poetry-favorites') || '[]'))
 const readVersion = ref(0)
@@ -303,7 +310,7 @@ async function setPoemLanguage(language) {
   if (poem.value) await loadPoem(poem.value.id)
 }
 function scrollToSection(selector) {
-  menuOpen.value = false
+  gameSheetOpen.value = false
   document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
@@ -341,16 +348,7 @@ onBeforeUnmount(() => {
           </select>
           <ChevronDown :size="13" />
         </div>
-        <div class="yaji-menu-wrap">
-          <button class="icon-button" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen"><Menu :size="19" /></button>
-          <div v-if="menuOpen" class="yaji-menu">
-            <a href="/">{{ m.back }}</a>
-            <button @click="scrollToSection('#daily')">{{ m.daily }}</button>
-            <button @click="scrollToSection('#games')">{{ m.games }}</button>
-            <a href="/status.html">{{ m.status }}</a>
-            <a href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="15" /> {{ m.source }}</a>
-          </div>
-        </div>
+        <SiteDirectory :messages="m" />
       </div>
     </header>
 
@@ -495,11 +493,21 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <nav class="mobile-bottom-nav" :aria-label="m.menu">
-      <a href="/"><Home :size="20" /><span>{{ m.navHome }}</span></a>
+    <nav class="mobile-bottom-nav yaji-bottom-nav" :aria-label="m.games">
       <button @click="scrollToSection('#daily')"><CalendarDays :size="20" /><span>{{ m.navDaily }}</span></button>
-      <button @click="scrollToSection('#games')"><Gamepad2 :size="20" /><span>{{ m.navGames }}</span></button>
-      <button @click="menuOpen = !menuOpen"><Menu :size="20" /><span>{{ m.navMenu }}</span></button>
+      <a href="/"><Home :size="20" /><span>{{ m.navHome }}</span></a>
+      <button :class="{ active: gameSheetOpen }" @click="gameSheetOpen = true"><Gamepad2 :size="20" /><span>{{ m.navGames }}</span></button>
     </nav>
+
+    <div v-if="gameSheetOpen" class="mobile-menu-backdrop" @click="gameSheetOpen = false"></div>
+    <aside :class="['mobile-sea-sheet','yaji-game-sheet',{open:gameSheetOpen}]" :aria-hidden="!gameSheetOpen">
+      <div class="mobile-sheet-handle"></div>
+      <div class="mobile-sheet-head"><div><small>{{ m.page }}</small><h3>{{ m.games }}</h3></div><button @click="gameSheetOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
+      <button @click="scrollToSection('#games')"><CircleHelp :size="21"/><span><b>{{ m.riddle }}</b><small>{{ m.riddleDesc }}</small></span><i>{{ m.preparing }}</i></button>
+      <button @click="scrollToSection('#games')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
+      <button @click="scrollToSection('#games')"><BookOpen :size="21"/><span><b>{{ m.fill }}</b><small>{{ m.fillDesc }}</small></span><i>{{ m.preparing }}</i></button>
+    </aside>
+
+    <SiteFooter :messages="m" :ui-lang="uiLang" />
   </div>
 </template>

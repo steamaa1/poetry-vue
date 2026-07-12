@@ -57,5 +57,10 @@ export const yajiZhHant = {
   fill: '補闕成章', fillDesc: '補全缺落字句，使詩章復原', preparing: '籌備中',
   menu: '雅集目錄', source: '項目源碼', status: 'API 狀態',
   navHome: '隨閱', navDaily: '日課', navGames: '雅戲', navMenu: '目錄',
-  languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言'
+  languageTitle: '切換整個網頁語言', languageAria: '選擇網頁語言', closeMenu: '關閉選單',
+  siteDirectory: '詩箋目錄', directoryHome: '詩箋隨閱', directoryHomeDesc: '首頁',
+  elegantGathering: '詩趣雅集', elegantGatheringDesc: '每日一詩與詩詞互動合集',
+  dailyPoem: '每日一詩', dailyPoemDesc: '每天固定相逢一首詩',
+  poetryInteraction: '詩詞雅戲', poetryInteractionDesc: '聯句、詩謎與補闕等詩詞互動', projectSource: '項目源碼',
+  dataFrom: '資料由「詩泉」API 提供 · 字句有盡，詩意無窮', myProject: '我的項目', apiStatus: 'API 狀態', apiLink: '詩泉 API ↗'
 }

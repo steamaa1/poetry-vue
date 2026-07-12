@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
+import SiteDirectory from './components/SiteDirectory.vue'
+import SiteFooter from './components/SiteFooter.vue'
 import {
-  Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Menu, CalendarDays, Gamepad2, CircleHelp
+  Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Languages, ChevronDown,
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Gamepad2
 } from 'lucide-vue-next'
 
 const API = ''
@@ -68,8 +70,6 @@ const seaMenuOpen = ref(false)
 const searchMenuOpen = ref(false)
 const mobileSeaOpen = ref(false)
 const mobileSearchOpen = ref(false)
-const siteMenuOpen = ref(false)
-const mobileSiteOpen = ref(false)
 let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
@@ -640,26 +640,11 @@ function closeNavigationMenus() {
   searchMenuOpen.value = false
   mobileSeaOpen.value = false
   mobileSearchOpen.value = false
-  siteMenuOpen.value = false
-  mobileSiteOpen.value = false
-}
-
-function toggleSiteDirectory() {
-  if (window.innerWidth <= 850) {
-    mobileSiteOpen.value = true
-    siteMenuOpen.value = false
-  } else {
-    siteMenuOpen.value = !siteMenuOpen.value
-  }
 }
 
 function navigateTo(path) {
   closeNavigationMenus()
   window.location.assign(path)
-}
-
-function goHome() {
-  navigateTo('/')
 }
 
 async function goToSection(selector) {
@@ -681,7 +666,6 @@ function handleNavigationKey(event) {
 
 function handleNavigationClick(event) {
   if (!event.target.closest('.nav-dropdown')) { seaMenuOpen.value = false; searchMenuOpen.value = false }
-  if (!event.target.closest('.site-directory')) siteMenuOpen.value = false
 }
 
 async function openSeaTab(tab) {
@@ -857,19 +841,7 @@ onBeforeUnmount(() => {
           </select>
           <ChevronDown :size="13" />
         </div>
-        <div class="site-directory">
-          <button class="icon-button" @click="toggleSiteDirectory" :title="m.siteDirectory" aria-haspopup="menu" :aria-expanded="siteMenuOpen"><Menu :size="20" /></button>
-          <div v-show="siteMenuOpen" class="site-directory-menu" role="menu" @click.stop>
-            <div class="directory-heading"><small>{{ m.siteDirectory }}</small><b>{{ m.brand }}</b></div>
-            <button class="directory-home" role="menuitem" @click="goHome"><Home :size="20"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="16"/></button>
-            <button class="directory-group-title" @click="navigateTo('/yaji.html')"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="15"/></button>
-            <div class="directory-future-list directory-page-list">
-              <button @click="navigateTo('/yaji.html#daily')"><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-              <button @click="navigateTo('/yaji.html#games')"><Gamepad2 :size="17"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
-            </div>
-            <a class="directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="16"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
-          </div>
-        </div>
+        <SiteDirectory :messages="m" />
       </div>
     </header>
 
@@ -1085,19 +1057,7 @@ onBeforeUnmount(() => {
       <button @click="navigateTo('/yaji.html')"><Gamepad2 :size="20"/><span>{{ m.elegantGathering }}</span></button>
     </nav>
 
-    <div v-if="mobileSeaOpen || mobileSearchOpen || mobileSiteOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
-    <aside :class="['mobile-sea-sheet','mobile-directory-sheet',{open:mobileSiteOpen}]" :aria-hidden="!mobileSiteOpen">
-      <div class="mobile-sheet-handle"></div>
-      <div class="mobile-sheet-head"><div><small>{{ m.brand }}</small><h3>{{ m.siteDirectory }}</h3></div><button @click="mobileSiteOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
-      <button @click="goHome"><Home :size="21"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="17"/></button>
-      <button class="mobile-directory-title" @click="navigateTo('/yaji.html')"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="16"/></button>
-      <div class="mobile-future-items mobile-page-list">
-        <button @click="navigateTo('/yaji.html#daily')"><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-        <button @click="navigateTo('/yaji.html#games')"><Gamepad2 :size="18"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
-      </div>
-      <a class="mobile-directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="17"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
-    </aside>
-
+    <div v-if="mobileSeaOpen || mobileSearchOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
     <aside :class="['mobile-sea-sheet','mobile-search-sheet',{open:mobileSearchOpen}]" :aria-hidden="!mobileSearchOpen">
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.searchKicker }}</small><h3>{{ m.searchMenuTitle }}</h3></div><button @click="mobileSearchOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
@@ -1115,6 +1075,6 @@ onBeforeUnmount(() => {
       <button :class="{current:seaTab === 'types'}" @click="goToSeaTab('types')"><LibraryBig :size="21"/><span><b>{{ m.typesTab }}</b><small>{{ m.typesMenuDesc }}</small></span><ChevronRight :size="17"/></button>
     </aside>
 
-    <footer><div class="wrap"><div class="brand mini"><span class="seal">{{ uiLang === 'zh-Hant' ? '詩' : '诗' }}</span><b>{{ m.brand }}</b></div><p>{{ m.dataFrom }}</p><div class="footer-links"><a href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="14"/> {{ m.myProject }}</a><a href="/status.html">{{ m.apiStatus }}</a><a href="https://poetry.palemoky.com/" target="_blank" rel="noopener">{{ m.apiLink }}</a></div></div></footer>
+    <SiteFooter :messages="m" :ui-lang="uiLang" />
   </div>
 </template>

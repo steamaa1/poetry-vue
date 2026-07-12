@@ -26,41 +26,6 @@
   background: var(--red);
 }
 
-.yaji-menu-wrap { position: relative; }
-.yaji-menu {
-  position: absolute;
-  z-index: 145;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 280px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-top: 2px solid var(--red);
-  background: rgba(250, 248, 242, .98);
-  box-shadow: 0 22px 55px rgba(50, 47, 38, .18);
-  backdrop-filter: blur(16px);
-}
-
-.yaji-menu a,
-.yaji-menu button {
-  width: 100%;
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 12px;
-  border: 0;
-  border-bottom: 1px solid rgba(45, 47, 41, .08);
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-  text-align: left;
-  text-decoration: none;
-}
-
-.yaji-menu a:hover,
-.yaji-menu button:hover { color: var(--red); background: rgba(168, 62, 50, .045); }
-
 .yaji-hero {
   padding: 72px 0 45px;
   text-align: center;
@@ -282,29 +247,44 @@
   text-decoration: none;
 }
 
+/* 雅集移动端三项导航：日课 / 随阅 / 雅戏 */
 @media (max-width: 850px) {
-  .yaji-menu {
-    position: fixed;
-    z-index: 170;
-    top: auto;
-    right: 0;
-    bottom: calc(62px + env(safe-area-inset-bottom));
-    left: 0;
-    width: auto;
-    max-height: 70vh;
-    padding: 12px 18px calc(16px + env(safe-area-inset-bottom));
-    overflow-y: auto;
-    border: 0;
-    border-top: 1px solid var(--line);
-    border-radius: 22px 22px 0 0;
-    background: #f8f4ea;
-    box-shadow: 0 -22px 55px rgba(28, 30, 27, .22);
+  .yaji-bottom-nav {
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  .yaji-menu a,
-  .yaji-menu button {
-    min-height: 58px;
-    padding: 0 14px;
-    font-size: 12px;
+  .yaji-bottom-nav a,
+  .yaji-bottom-nav button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 9px;
+    text-decoration: none;
+  }
+
+  .yaji-bottom-nav a:hover,
+  .yaji-bottom-nav button:hover,
+  .yaji-bottom-nav button.active {
+    color: var(--red);
+  }
+
+  .yaji-game-sheet {
+    max-height: 76vh;
+    overflow-y: auto;
+  }
+
+  .yaji-game-sheet > button i {
+    padding: 2px 6px;
+    border: 1px solid rgba(168, 62, 50, .22);
+    color: var(--red);
+    font-size: 8px;
+    font-style: normal;
+    white-space: nowrap;
   }
 }
