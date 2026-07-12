@@ -315,3 +315,27 @@
     scroll-margin-top: 18px;
   }
 }
+
+/* 诗词分享与抄录操作 */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-actions button {
+  white-space: nowrap;
+}
+
+@media (max-width: 540px) {
+  .card-bottom {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 7px;
+  }
+}
