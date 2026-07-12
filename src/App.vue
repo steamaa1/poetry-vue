@@ -63,7 +63,9 @@ const flyingError = ref('')
 const fullscreenReading = ref(false)
 const famousAuthors = ['李白', '杜甫', '白居易', '王维', '苏轼', '李清照', '辛弃疾', '陆游']
 const seaMenuOpen = ref(false)
+const searchMenuOpen = ref(false)
 const mobileSeaOpen = ref(false)
+const mobileSearchOpen = ref(false)
 let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
@@ -85,7 +87,7 @@ const zhHans = {
     dataFrom: '数据由「诗泉」API 提供 · 字句有尽，诗意无穷', myProject: '我的项目', apiLink: '诗泉 API ↗', apiStatus: 'API 状态',
     languageTitle: '切换整个网页语言', languageAria: '选择网页语言', loadFailed: '诗意暂时走远了，请稍后重试。',
     switchFailed: '文字切换失败，请稍后重试。', neighborFailed: '暂时无法返回这首诗笺。',
-    flyingNav: '飞花令', flyingKicker: '一字飞花', flyingTitle: '拈一字，寻一诗', flyingDesc: '输入一个汉字，从浩瀚诗海中随机寻找正文含有此字的诗。', flyingPlaceholder: '输入一个汉字', flyingAction: '行飞花令', flyingAgain: '再寻一首', flyingSingleChar: '飞花令只能输入一个汉字。', flyingFailed: '未寻到含此字的诗，请换一个字试试。', commonChars: '常用飞花字',
+    flyingNav: '飞花令', searchMenuTitle: '寻章', searchMenuDesc: '全文检索诗题、诗句与作者', flyingMenuDesc: '拈一字，从诗海中随机寻诗', flyingKicker: '一字飞花', flyingTitle: '拈一字，寻一诗', flyingDesc: '输入一个汉字，从浩瀚诗海中随机寻找正文含有此字的诗。', flyingPlaceholder: '输入一个汉字', flyingAction: '行飞花令', flyingAgain: '再寻一首', flyingSingleChar: '飞花令只能输入一个汉字。', flyingFailed: '未寻到含此字的诗，请换一个字试试。', commonChars: '常用飞花字',
     fullscreen: '全屏阅读', exitFullscreen: '退出全屏', immersiveReading: '沉浸阅读',
     seaNav: '诗海', seaKicker: '万卷诗海', seaTitle: '一页风雅，千年文章', seaDesc: '循数据观诗脉，随卷帙访诗人。',
     statsTab: '数据概览', poemsTab: '诗海漫游', authorsTab: '诗人名录', dynastiesTab: '朝代风华', typesTab: '诗体词牌', loadingSea: '正在翻阅诗海…', loadSeaFailed: '诗海暂时起雾，请稍后重试。', reload: '重新加载',
@@ -599,18 +601,27 @@ async function readTaxonomyPoem(kind, name) {
 
 function scheduleSeaMenuClose() {
   clearTimeout(seaMenuTimer)
-  seaMenuTimer = setTimeout(() => { seaMenuOpen.value = false }, 180)
+  seaMenuTimer = setTimeout(() => { seaMenuOpen.value = false; searchMenuOpen.value = false }, 180)
 }
 
 function keepSeaMenuOpen() {
   clearTimeout(seaMenuTimer)
   seaMenuOpen.value = true
+  searchMenuOpen.value = false
+}
+
+function keepSearchMenuOpen() {
+  clearTimeout(seaMenuTimer)
+  searchMenuOpen.value = true
+  seaMenuOpen.value = false
 }
 
 function closeNavigationMenus() {
   clearTimeout(seaMenuTimer)
   seaMenuOpen.value = false
+  searchMenuOpen.value = false
   mobileSeaOpen.value = false
+  mobileSearchOpen.value = false
 }
 
 async function goToSection(selector) {
@@ -631,7 +642,7 @@ function handleNavigationKey(event) {
 }
 
 function handleNavigationClick(event) {
-  if (!event.target.closest('.nav-dropdown')) seaMenuOpen.value = false
+  if (!event.target.closest('.nav-dropdown')) { seaMenuOpen.value = false; searchMenuOpen.value = false }
 }
 
 async function openSeaTab(tab) {
@@ -775,8 +786,15 @@ onBeforeUnmount(() => {
       </a>
       <nav class="desktop-nav">
         <a class="active" href="#today">{{ m.today }}</a>
-        <a href="#explore">{{ m.explore }}</a>
-        <a href="#feihua">{{ m.flyingNav }}</a>
+        <div class="nav-dropdown" @mouseenter="keepSearchMenuOpen" @mouseleave="scheduleSeaMenuClose">
+          <button class="nav-dropdown-trigger" @click="searchMenuOpen = !searchMenuOpen; seaMenuOpen = false" aria-haspopup="menu" :aria-expanded="searchMenuOpen">
+            {{ m.explore }} <ChevronDown :size="13" :class="{rotated:searchMenuOpen}"/>
+          </button>
+          <div v-show="searchMenuOpen" class="nav-dropdown-menu search-dropdown-menu" role="menu" @click.stop>
+            <button role="menuitem" @click="goToSection('#explore')"><Search :size="19"/><span><b>{{ m.explore }}</b><small>{{ m.searchMenuDesc }}</small></span><ChevronRight :size="15"/></button>
+            <button role="menuitem" @click="goToSection('#feihua')"><Flower2 :size="19"/><span><b>{{ m.flyingNav }}</b><small>{{ m.flyingMenuDesc }}</small></span><ChevronRight :size="15"/></button>
+          </div>
+        </div>
         <div class="nav-dropdown" @mouseenter="keepSeaMenuOpen" @mouseleave="scheduleSeaMenuClose">
           <button class="nav-dropdown-trigger" @click="seaMenuOpen = !seaMenuOpen" aria-haspopup="menu" :aria-expanded="seaMenuOpen">
             {{ m.seaNav }} <ChevronDown :size="13" :class="{rotated:seaMenuOpen}"/>
@@ -999,12 +1017,19 @@ onBeforeUnmount(() => {
 
     <nav class="mobile-bottom-nav" :aria-label="m.languageAria">
       <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
-      <button @click="goToSection('#explore')"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
+      <button :class="{active:mobileSearchOpen}" @click="mobileSearchOpen = true"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
       <button :class="{active:mobileSeaOpen}" @click="mobileSeaOpen = true"><Waves :size="20"/><span>{{ m.mobileNavSea }}</span></button>
       <button @click="goToSection(favorites.length ? '#favorites' : '#today')"><Bookmark :size="20"/><span>{{ m.mobileNavFavorite }}</span><i v-if="favorites.length">{{ favorites.length }}</i></button>
     </nav>
 
-    <div v-if="mobileSeaOpen" class="mobile-menu-backdrop" @click="mobileSeaOpen = false"></div>
+    <div v-if="mobileSeaOpen || mobileSearchOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
+    <aside :class="['mobile-sea-sheet','mobile-search-sheet',{open:mobileSearchOpen}]" :aria-hidden="!mobileSearchOpen">
+      <div class="mobile-sheet-handle"></div>
+      <div class="mobile-sheet-head"><div><small>{{ m.searchKicker }}</small><h3>{{ m.searchMenuTitle }}</h3></div><button @click="mobileSearchOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
+      <button @click="goToSection('#explore')"><Search :size="21"/><span><b>{{ m.explore }}</b><small>{{ m.searchMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+      <button @click="goToSection('#feihua')"><Flower2 :size="21"/><span><b>{{ m.flyingNav }}</b><small>{{ m.flyingMenuDesc }}</small></span><ChevronRight :size="17"/></button>
+    </aside>
+
     <aside :class="['mobile-sea-sheet',{open:mobileSeaOpen}]" :aria-hidden="!mobileSeaOpen">
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.seaKicker }}</small><h3>{{ m.seaNav }}</h3></div><button @click="mobileSeaOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
