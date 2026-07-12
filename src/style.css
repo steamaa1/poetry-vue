@@ -304,3 +304,14 @@
   font-family: 'Noto Serif TC', serif;
   font-weight: 600;
 }
+
+/* 从搜索或收藏展开时，定位到诗笺并给顶部留出舒适间距 */
+.poem-stage {
+  scroll-margin-top: 24px;
+}
+
+@media (max-width: 850px) {
+  .poem-stage {
+    scroll-margin-top: 18px;
+  }
+}

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import {
   Search, Shuffle, Heart, Copy, Check, Github, Languages, ChevronDown,
   ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info
@@ -7,6 +7,7 @@ import {
 
 const API = ''
 const poem = ref(null)
+const poemStage = ref(null)
 const loading = ref(true)
 const error = ref('')
 const query = ref('')
@@ -162,9 +163,11 @@ async function searchPoems() {
   }
 }
 
-function showPoem(p) {
+async function showPoem(p) {
   recordPoem(p)
   searched.value = false
+  await nextTick()
+  poemStage.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function toggleFavorite() {
@@ -273,7 +276,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="poem-stage">
+        <div ref="poemStage" class="poem-stage">
           <span class="sun"></span><span class="mountain m1"></span><span class="mountain m2"></span>
           <div class="poem-column">
             <article class="poem-card" :lang="poemLang">
