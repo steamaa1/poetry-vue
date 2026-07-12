@@ -73,15 +73,65 @@ npm run build
 
 构建产物位于 `dist/`。
 
-## Cloudflare Pages
+## 部署说明
+
+项目使用 Vite 多页面构建，构建命令统一为：
+
+```bash
+npm install
+npm run build
+```
+
+构建产物位于 `dist/`，包含首页 `index.html` 与诗趣雅集 `yaji.html`。建议使用 Node.js 20 或更高版本，无需配置环境变量。
+
+### Cloudflare Pages
+
+当前仓库对 Cloudflare Pages 的支持最完整，`functions/api/[[path]].js` 会被自动识别为 Pages Function，并为前端提供同源 `/api/*` 代理。
 
 - Framework preset：`Vue`
 - Build command：`npm run build`
 - Build output directory：`dist`
 - Root directory：`/`
-- Node.js version：建议 `20` 或更高
 
-无需配置环境变量。
+连接 GitHub 仓库并保存配置后即可部署，页面与 API 代理均可直接使用。
+
+### Cloudflare Workers
+
+可以使用 Workers Static Assets 托管 `dist/`，但当前的 `functions/api/[[path]].js` 属于 Pages Functions 格式，不能直接作为 Workers 入口使用。
+
+完整部署需要：
+
+1. 构建前端：`npm run build`；
+2. 将 `dist/` 配置为 Worker 静态资源目录；
+3. 把现有 Pages Function 代理逻辑迁移到 Worker 的 `fetch` 处理器；
+4. 在 Worker 中接管 `/api/*`，其他请求返回静态资源。
+
+如果仅发布 `dist/` 而不迁移代理，页面可以打开，但依赖 `/api/*` 的诗词功能不可用。
+
+### Vercel
+
+导入 GitHub 仓库后使用以下配置：
+
+- Framework preset：`Vite`
+- Build command：`npm run build`
+- Output directory：`dist`
+- Install command：`npm install`
+
+当前 Cloudflare Pages Function 不会被 Vercel 执行。要保留完整诗词功能，需要新增 Vercel Function，在 `/api/*` 路径下实现与 `functions/api/[[path]].js` 相同的上游代理与超时重试逻辑。
+
+仅部署前端时，静态页面可以访问，但 API 功能不可用。
+
+### Netlify
+
+导入 GitHub 仓库后使用以下配置：
+
+- Build command：`npm run build`
+- Publish directory：`dist`
+- Base directory：留空或使用仓库根目录
+
+当前 Cloudflare Pages Function 不会被 Netlify 执行。完整部署需要新增 Netlify Function，并通过重写规则将 `/api/*` 转发到该 Function。
+
+仅发布 `dist/` 时，静态页面可以访问，但依赖 API 的功能不可用。
 
 ## 数据来源
 
@@ -90,12 +140,14 @@ npm run build
 
 ## API 代理
 
-生产环境通过 `functions/api/[[path]].js` 将同源 `/api/*` 请求代理到诗泉 API，避免浏览器受到第三方接口 CORS 限制。Cloudflare Pages 部署时会自动识别该 Functions 目录，无需额外环境变量。
+当前仓库内置的是 Cloudflare Pages Functions 实现：`functions/api/[[path]].js`。它将同源 `/api/*` 请求代理到诗泉 API，避免浏览器受到第三方接口 CORS 限制。
+
+使用 Cloudflare Workers、Vercel 或 Netlify 时，需要按上方部署说明将这段代理逻辑迁移到对应平台的服务端函数格式。
 
 ### 超时与重试
 
 - 浏览器端 API 请求超时为 10 秒。
-- Cloudflare Pages Function 请求上游诗泉的超时同样为 10 秒。
+- 服务端代理请求诗泉的超时为 10 秒。
 - 网络错误、HTTP 408、429 与 5xx 错误最多自动重试 2 次，并采用递增等待时间。
 - 参数错误、权限错误、404 等确定性错误不会重试。
 
