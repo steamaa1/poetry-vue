@@ -653,9 +653,13 @@ function toggleSiteDirectory() {
   }
 }
 
-function goHome() {
+function navigateTo(path) {
   closeNavigationMenus()
-  window.location.href = '/'
+  window.location.assign(path)
+}
+
+function goHome() {
+  navigateTo('/')
 }
 
 async function goToSection(selector) {
@@ -858,10 +862,10 @@ onBeforeUnmount(() => {
           <div v-show="siteMenuOpen" class="site-directory-menu" role="menu" @click.stop>
             <div class="directory-heading"><small>{{ m.siteDirectory }}</small><b>{{ m.brand }}</b></div>
             <button class="directory-home" role="menuitem" @click="goHome"><Home :size="20"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="16"/></button>
-            <button class="directory-group-title" @click="window.location.href = '/yaji.html'"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="15"/></button>
+            <button class="directory-group-title" @click="navigateTo('/yaji.html')"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="15"/></button>
             <div class="directory-future-list directory-page-list">
-              <button @click="window.location.href = '/yaji.html#daily'"><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-              <button @click="window.location.href = '/yaji.html#games'"><Gamepad2 :size="17"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
+              <button @click="navigateTo('/yaji.html#daily')"><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
+              <button @click="navigateTo('/yaji.html#games')"><Gamepad2 :size="17"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
             </div>
             <a class="directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="16"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
           </div>
@@ -1078,7 +1082,7 @@ onBeforeUnmount(() => {
       <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
       <button :class="{active:mobileSearchOpen}" @click="mobileSearchOpen = true"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
       <button :class="{active:mobileSeaOpen}" @click="mobileSeaOpen = true"><Waves :size="20"/><span>{{ m.mobileNavSea }}</span></button>
-      <button @click="window.location.href = '/yaji.html'"><Gamepad2 :size="20"/><span>{{ m.elegantGathering }}</span></button>
+      <button @click="navigateTo('/yaji.html')"><Gamepad2 :size="20"/><span>{{ m.elegantGathering }}</span></button>
     </nav>
 
     <div v-if="mobileSeaOpen || mobileSearchOpen || mobileSiteOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
@@ -1086,10 +1090,10 @@ onBeforeUnmount(() => {
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.brand }}</small><h3>{{ m.siteDirectory }}</h3></div><button @click="mobileSiteOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
       <button @click="goHome"><Home :size="21"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="17"/></button>
-      <button class="mobile-directory-title" @click="window.location.href = '/yaji.html'"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="16"/></button>
+      <button class="mobile-directory-title" @click="navigateTo('/yaji.html')"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="16"/></button>
       <div class="mobile-future-items mobile-page-list">
-        <button @click="window.location.href = '/yaji.html#daily'"><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-        <button @click="window.location.href = '/yaji.html#games'"><Gamepad2 :size="18"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
+        <button @click="navigateTo('/yaji.html#daily')"><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
+        <button @click="navigateTo('/yaji.html#games')"><Gamepad2 :size="18"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.poetryInteractionDesc }}</small></span><ChevronRight :size="14"/></button>
       </div>
       <a class="mobile-directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="17"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
     </aside>
