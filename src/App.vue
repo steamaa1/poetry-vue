@@ -70,6 +70,7 @@ const mobileSeaOpen = ref(false)
 const mobileSearchOpen = ref(false)
 const siteMenuOpen = ref(false)
 const mobileSiteOpen = ref(false)
+const elegantMenuOpen = ref(true)
 let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
@@ -105,11 +106,8 @@ const zhHans = {
     currentPageOnly: '仅筛选当前页',
     statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人', dynastiesMenuDesc: '沿时间轴遍览历代风华', typesMenuDesc: '认识诗词体裁与格律',
     mobileNavHome: '诗笺', mobileNavSearch: '寻章', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
-    siteDirectory: '诗笺目录', directoryHome: '诗笺随阅', directoryHomeDesc: '首页', elegantGathering: '诗趣雅集', elegantGatheringDesc: '日课一诗，闲时雅戏', preparing: '筹备中',
-    dailyPoem: '每日一诗', dailyPoemDesc: '一日一诗，与古人如期相逢', dailyKicker: '今日诗课', dailyOpen: '展开今日诗笺', streakDays: '已连续读诗 {count} 天', dailyFailed: '今日诗课暂未送达，请稍后重试。',
-    poetryInteraction: '诗词雅戏', interactionLead: '以诗为戏，在字句之间温故知新。', poetrySolitaire: '联句续章', poetryRiddle: '诗谜寻踪', verseFill: '补阙成章',
-    solitaireDesc: '承前句余韵，续写下一章', riddleDesc: '隐去诗题与诗人，循字句猜其来处', fillDesc: '补全缺落字句，使诗章复原', interactionDesc: '诗词互动挑战', projectSource: '项目源码',
-    mobileNavDaily: '日课', mobileNavPlay: '雅趣',
+    siteDirectory: '诗笺目录', directoryHome: '诗笺随阅', directoryHomeDesc: '首页', elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集', preparing: '筹备中',
+    dailyPoem: '每日一诗', dailyPoemDesc: '每天固定相逢一首诗', poetrySolitaire: '诗词接龙', guessPoet: '猜诗人', guessTitle: '猜诗名', verseFill: '诗句填空', interactionDesc: '诗词互动挑战', projectSource: '项目源码',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 
@@ -132,12 +130,6 @@ const searchHeading = computed(() => {
 const quickWords = computed(() => uiLang.value === 'zh-Hant'
   ? ['明月光', '思故鄉', '春風裡', '長安城', '李太白']
   : ['明月光', '思故乡', '春风里', '长安城', '李太白'])
-const dailyPoem = ref(null)
-const dailyLoading = ref(false)
-const dailyError = ref('')
-const readingStreak = ref(0)
-const dailyDateKey = new Date().toLocaleDateString('sv-SE')
-
 const commonFlyingChars = computed(() => poemLang.value === 'zh-Hant'
   ? ['月', '花', '春', '秋', '風', '雨', '山', '水', '酒', '雲']
   : ['月', '花', '春', '秋', '风', '雨', '山', '水', '酒', '云'])
@@ -501,7 +493,6 @@ async function setPoemLang(nextLang) {
         await loadSeaTab(tab)
       }
     }
-    if (dailyPoem.value) await loadDailyPoem()
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
@@ -531,7 +522,6 @@ async function changeUiLang() {
         await loadSeaTab(tab)
       }
     }
-    if (dailyPoem.value) await loadDailyPoem()
   } catch (_) {
     error.value = m.value.switchFailed
   } finally {
@@ -549,50 +539,6 @@ function poemCharacters(line) {
 function queryCharacter(char) {
   if (!dictionaryMode.value || !/\p{Script=Han}/u.test(char)) return
   window.open(`https://www.zdic.net/hans/${encodeURIComponent(char)}`, '_blank', 'noopener,noreferrer')
-}
-
-function updateReadingStreak() {
-  const today = dailyDateKey
-  const lastDate = localStorage.getItem('poetry-daily-last-date')
-  let streak = Number.parseInt(localStorage.getItem('poetry-daily-streak') || '0', 10)
-  if (lastDate !== today) {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayKey = yesterday.toLocaleDateString('sv-SE')
-    streak = lastDate === yesterdayKey ? streak + 1 : 1
-    localStorage.setItem('poetry-daily-last-date', today)
-    localStorage.setItem('poetry-daily-streak', String(streak))
-  }
-  readingStreak.value = Math.max(streak, 1)
-}
-
-async function loadDailyPoem() {
-  dailyLoading.value = true
-  dailyError.value = ''
-  try {
-    const storageKey = `poetry-daily-id-${dailyDateKey}`
-    const savedId = Number.parseInt(localStorage.getItem(storageKey) || '', 10)
-    if (Number.isInteger(savedId) && savedId > 0) {
-      const data = await getJSON(`/api/poems/${savedId}`)
-      dailyPoem.value = data.data
-    } else {
-      const data = await getJSON('/api/poems/random')
-      dailyPoem.value = data.data
-      localStorage.setItem(storageKey, String(data.data.id))
-    }
-    updateReadingStreak()
-  } catch (_) {
-    dailyError.value = m.value.dailyFailed
-  } finally {
-    dailyLoading.value = false
-  }
-}
-
-async function openDailyPoem() {
-  if (!dailyPoem.value) return
-  recordPoem(dailyPoem.value)
-  await nextTick()
-  poemStage.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 async function runFlyingGame() {
@@ -856,7 +802,7 @@ onMounted(() => {
   document.addEventListener('keydown', handleNavigationKey)
   document.addEventListener('click', handleNavigationClick)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
-  return Promise.all([loadInitialPoem(), loadFilters(), loadDailyPoem()]).then(() => loadSeaTab('stats'))
+  return Promise.all([loadInitialPoem(), loadFilters()]).then(() => loadSeaTab('stats'))
 })
 
 onBeforeUnmount(() => {
@@ -913,10 +859,13 @@ onBeforeUnmount(() => {
           <div v-show="siteMenuOpen" class="site-directory-menu" role="menu" @click.stop>
             <div class="directory-heading"><small>{{ m.siteDirectory }}</small><b>{{ m.brand }}</b></div>
             <button class="directory-home" role="menuitem" @click="goHome"><Home :size="20"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="16"/></button>
-            <button class="directory-group-title" @click="goToSection('#yaji')"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="15"/></button>
-            <div class="directory-future-list directory-page-list">
-              <button @click="goToSection('#daily-poem')"><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-              <button @click="goToSection('#poetry-games')"><Gamepad2 :size="17"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.interactionLead }}</small></span><ChevronRight :size="14"/></button>
+            <button class="directory-group-title" @click="elegantMenuOpen = !elegantMenuOpen" :aria-expanded="elegantMenuOpen"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronDown :size="15" :class="{rotated:elegantMenuOpen}"/></button>
+            <div v-show="elegantMenuOpen" class="directory-future-list">
+              <div><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><Gamepad2 :size="17"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><CircleHelp :size="17"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><CircleHelp :size="17"/><span><b>{{ m.guessTitle }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><BookOpen :size="17"/><span><b>{{ m.verseFill }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
             </div>
             <a class="directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="16"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
           </div>
@@ -995,34 +944,6 @@ onBeforeUnmount(() => {
               <button @click="changeSearchPage(-1)" :disabled="searchPage <= 1"><ChevronLeft :size="17"/> {{ m.searchPrevious }}</button>
               <span>{{ m.pageLabel.replace('{page}', searchPage) }}</span>
               <button @click="changeSearchPage(1)" :disabled="!searchHasMore">{{ m.searchNext }} <ChevronRight :size="17"/></button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="yaji" class="yaji-section">
-        <div class="wrap narrow">
-          <p class="section-kicker"><Gamepad2 :size="16"/> {{ m.elegantGathering }}</p>
-          <h2>{{ m.elegantGathering }}</h2>
-          <p class="yaji-intro">{{ m.elegantGatheringDesc }}</p>
-
-          <div id="daily-poem" class="daily-poem-panel" :lang="poemLang">
-            <div class="daily-heading"><div><span>{{ m.dailyKicker }}</span><h3>{{ m.dailyPoem }}</h3></div><small>{{ m.streakDays.replace('{count}', readingStreak) }}</small></div>
-            <div v-if="dailyLoading" class="daily-state"><RotateCw class="spin" :size="26"/><span>{{ m.finding }}</span></div>
-            <div v-else-if="dailyError" class="daily-state"><Info :size="26"/><span>{{ dailyError }}</span><button @click="loadDailyPoem">{{ m.retry }}</button></div>
-            <div v-else-if="dailyPoem" class="daily-content">
-              <div><span>{{ dailyPoem.type?.name }}</span><h3>{{ dailyPoem.title }}</h3><p>{{ dailyPoem.dynasty?.name }} · {{ dailyPoem.author?.name || m.anonymous }}</p></div>
-              <div class="daily-verses"><p v-for="(line,index) in dailyPoem.content.slice(0,4)" :key="index">{{ line }}</p></div>
-              <button @click="openDailyPoem"><BookOpen :size="16"/> {{ m.dailyOpen }}</button>
-            </div>
-          </div>
-
-          <div id="poetry-games" class="poetry-games">
-            <div class="games-heading"><span>{{ m.poetryInteraction }}</span><p>{{ m.interactionLead }}</p></div>
-            <div class="games-grid">
-              <article><Gamepad2 :size="23"/><h3>{{ m.poetrySolitaire }}</h3><p>{{ m.solitaireDesc }}</p><span>{{ m.preparing }}</span></article>
-              <article><CircleHelp :size="23"/><h3>{{ m.poetryRiddle }}</h3><p>{{ m.riddleDesc }}</p><span>{{ m.preparing }}</span></article>
-              <article><BookOpen :size="23"/><h3>{{ m.verseFill }}</h3><p>{{ m.fillDesc }}</p><span>{{ m.preparing }}</span></article>
             </div>
           </div>
         </div>
@@ -1159,9 +1080,9 @@ onBeforeUnmount(() => {
 
     <nav class="mobile-bottom-nav" :aria-label="m.languageAria">
       <button @click="goToSection('#today')"><Home :size="20"/><span>{{ m.mobileNavHome }}</span></button>
-      <button @click="goToSection('#daily-poem')"><CalendarDays :size="20"/><span>{{ m.mobileNavDaily }}</span></button>
-      <button @click="goToSection('#poetry-games')"><Gamepad2 :size="20"/><span>{{ m.mobileNavPlay }}</span></button>
+      <button :class="{active:mobileSearchOpen}" @click="mobileSearchOpen = true"><Search :size="20"/><span>{{ m.mobileNavSearch }}</span></button>
       <button :class="{active:mobileSeaOpen}" @click="mobileSeaOpen = true"><Waves :size="20"/><span>{{ m.mobileNavSea }}</span></button>
+      <button @click="goToSection(favorites.length ? '#favorites' : '#today')"><Bookmark :size="20"/><span>{{ m.mobileNavFavorite }}</span><i v-if="favorites.length">{{ favorites.length }}</i></button>
     </nav>
 
     <div v-if="mobileSeaOpen || mobileSearchOpen || mobileSiteOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
@@ -1169,10 +1090,13 @@ onBeforeUnmount(() => {
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.brand }}</small><h3>{{ m.siteDirectory }}</h3></div><button @click="mobileSiteOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
       <button @click="goHome"><Home :size="21"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="17"/></button>
-      <button class="mobile-directory-title" @click="goToSection('#yaji')"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronRight :size="16"/></button>
-      <div class="mobile-future-items mobile-page-list">
-        <button @click="goToSection('#daily-poem')"><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><ChevronRight :size="14"/></button>
-        <button @click="goToSection('#poetry-games')"><Gamepad2 :size="18"/><span><b>{{ m.poetryInteraction }}</b><small>{{ m.interactionLead }}</small></span><ChevronRight :size="14"/></button>
+      <button class="mobile-directory-title" @click="elegantMenuOpen = !elegantMenuOpen" :aria-expanded="elegantMenuOpen"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronDown :size="16" :class="{rotated:elegantMenuOpen}"/></button>
+      <div v-show="elegantMenuOpen" class="mobile-future-items">
+        <div><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><Gamepad2 :size="18"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><CircleHelp :size="18"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><CircleHelp :size="18"/><span><b>{{ m.guessTitle }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><BookOpen :size="18"/><span><b>{{ m.verseFill }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
       </div>
       <a class="mobile-directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="17"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
     </aside>

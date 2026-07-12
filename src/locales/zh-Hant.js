@@ -32,11 +32,8 @@ const zhHant = {
     currentPageOnly: '僅篩選當前頁',
     statsMenuDesc: '縱覽詩詞、作者與朝代', poemsMenuDesc: '按卷瀏覽古典詩詞', authorsMenuDesc: '循名訪問歷代詩人', dynastiesMenuDesc: '沿時間軸遍覽歷代風華', typesMenuDesc: '認識詩詞體裁與格律',
     mobileNavHome: '詩箋', mobileNavSearch: '尋章', mobileNavSea: '詩海', mobileNavFavorite: '收藏', closeMenu: '關閉選單',
-    siteDirectory: '詩箋目錄', directoryHome: '詩箋隨閱', directoryHomeDesc: '首頁', elegantGathering: '詩趣雅集', elegantGatheringDesc: '日課一詩，閒時雅戲', preparing: '籌備中',
-    dailyPoem: '每日一詩', dailyPoemDesc: '一日一詩，與古人如期相逢', dailyKicker: '今日詩課', dailyOpen: '展開今日詩箋', streakDays: '已連續讀詩 {count} 天', dailyFailed: '今日詩課暫未送達，請稍後重試。',
-    poetryInteraction: '詩詞雅戲', interactionLead: '以詩為戲，在字句之間溫故知新。', poetrySolitaire: '聯句續章', poetryRiddle: '詩謎尋蹤', verseFill: '補闕成章',
-    solitaireDesc: '承前句餘韻，續寫下一章', riddleDesc: '隱去詩題與詩人，循字句猜其來處', fillDesc: '補全缺落字句，使詩章復原', interactionDesc: '詩詞互動挑戰', projectSource: '項目源碼',
-    mobileNavDaily: '日課', mobileNavPlay: '雅趣',
+    siteDirectory: '詩箋目錄', directoryHome: '詩箋隨閱', directoryHomeDesc: '首頁', elegantGathering: '詩趣雅集', elegantGatheringDesc: '每日一詩與詩詞互動合集', preparing: '籌備中',
+    dailyPoem: '每日一詩', dailyPoemDesc: '每天固定相逢一首詩', poetrySolitaire: '詩詞接龍', guessPoet: '猜詩人', guessTitle: '猜詩名', verseFill: '詩句填空', interactionDesc: '詩詞互動挑戰', projectSource: '項目源碼',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 
