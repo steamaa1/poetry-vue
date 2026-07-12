@@ -99,24 +99,6 @@ npm run build
 - 网络错误、HTTP 408、429 与 5xx 错误最多自动重试 2 次，并采用递增等待时间。
 - 参数错误、权限错误、404 等确定性错误不会重试。
 
-### API 状态页
-
-访问 [`/status.html`](/status.html) 可检测本站 API 代理及诗泉上游服务状态。状态页会并发检测随机诗词、统计、朝代、体裁与诗词目录接口，并显示 HTTP 状态和响应延迟。
-
-### 诗趣雅集
-
-访问 [`/yaji.html`](/yaji.html) 进入独立的诗趣雅集页面。该页面包含带月历与连续阅读记录的每日一诗，并为“联句续章”“诗谜寻踪”“补阙成章”等互动功能预留入口。
-
-雅集页面使用 Vue 3 + Vite 多页面入口实现：
-
-- `yaji.html`：Vite 雅集页面入口
-- `src/yaji/main.js`：Vue 挂载入口
-- `src/yaji/YajiApp.vue`：每日一诗、月历与互动页面组件
-- `src/yaji/style.css`：雅集页面样式
-- `src/locales/zh-Hant.js`：首页与雅集共用的繁体中文语言包（默认导出首页，命名导出雅集）
-
-`vite.config.js` 同时构建 `index.html` 与 `yaji.html`，部署后仍通过 `/yaji.html` 访问。
-
 ---
 
 本项目由**GPT5.6-Sol**辅助开发
