@@ -1,4 +1,4 @@
-# 诗笺 Poetry Vue
+# 诗笺 Chinese Poetry Vue
 
 一款基于 Vue 3、Vite 与[诗泉 API](https://poetry.palemoky.com/)开发的中国古典诗词网页。
 
