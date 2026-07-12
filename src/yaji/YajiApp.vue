@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight,
   CircleHelp, Copy, ExternalLink, Gamepad2, Heart, Home, ImageDown,
-  Info, Languages, Maximize2, Minimize2, RotateCw, Search, Share2, X
+  Eye, Info, Languages, Maximize2, Minimize2, RefreshCw, RotateCw, Search, Send, Share2, X
 } from 'lucide-vue-next'
 import { yajiZhHant } from '../locales/zh-Hant.js'
 import SiteDirectory from '../components/SiteDirectory.vue'
@@ -22,6 +22,10 @@ const zhHans = {
   poemScript: '诗笺文字', simplified: '简体', traditional: '繁體', scriptNote: '简繁转换或因合并字与古籍原文有异，建议对照阅读。',
   games: '诗词雅戏', gamesLead: '以诗为戏，在字句之间温故知新。',
   solitaire: '联句续章', solitaireDesc: '承前句余韵，续写下一章',
+  solitaireKicker: '承句续章', solitairePrompt: '请接下一句', solitairePlaceholder: '写下你记得的下一句…',
+  solitaireSubmit: '对句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '对句相合，正是此句。',
+  solitaireWrong: '尚有一字之差，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
+  solitaireUnavailable: '暂时未寻到合适的联句，请再试一次。', solitaireScore: '答对 {correct} / 已答 {total}', solitaireEmpty: '请先写下下一句。',
   riddle: '诗谜寻踪', riddleDesc: '隐去诗题或诗人，循字句猜其来处',
   fill: '补阙成章', fillDesc: '补全缺落字句，使诗章复原', preparing: '筹备中',
   menu: '雅集目录', source: '项目源码', status: 'API 状态',
@@ -55,6 +59,14 @@ const copied = ref(false)
 const shared = ref(false)
 const generating = ref(false)
 const gameSheetOpen = ref(false)
+const solitairePoem = ref(null)
+const solitaireIndex = ref(0)
+const solitaireInput = ref('')
+const solitaireState = ref('')
+const solitaireLoading = ref(false)
+const solitaireError = ref('')
+const solitaireCorrectCount = ref(Number.parseInt(localStorage.getItem('poetry-solitaire-correct') || '0', 10))
+const solitaireTotalCount = ref(Number.parseInt(localStorage.getItem('poetry-solitaire-total') || '0', 10))
 const streak = ref(1)
 const favoriteList = ref(JSON.parse(localStorage.getItem('poetry-favorites') || '[]'))
 const readVersion = ref(0)
@@ -89,6 +101,14 @@ const calendarDays = computed(() => {
 const isFavorite = computed(() => poem.value && favoriteList.value.some(item => item.id === poem.value.id))
 const poemText = computed(() => poem.value
   ? `${poem.value.title}\n${poem.value.dynasty?.name || ''} · ${poem.value.author?.name || m.value.anonymous}\n\n${poem.value.content.join('\n')}`
+  : '')
+
+const solitairePromptLine = computed(() => solitairePoem.value?.content?.[solitaireIndex.value] || '')
+const solitaireAnswerLine = computed(() => solitairePoem.value?.content?.[solitaireIndex.value + 1] || '')
+const solitaireSource = computed(() => solitairePoem.value
+  ? m.value.solitaireSource
+      .replace('{title}', solitairePoem.value.title)
+      .replace('{author}', solitairePoem.value.author?.name || m.value.anonymous)
   : '')
 
 const REQUEST_TIMEOUT = 10000
@@ -271,12 +291,67 @@ async function generateCard() {
   }
 }
 
+function normalizeVerse(value) {
+  return String(value || '').normalize('NFKC').replace(/[\p{P}\p{Z}\s]/gu, '').toLocaleLowerCase()
+}
+
+async function loadSolitaireQuestion() {
+  if (solitaireLoading.value) return
+  solitaireLoading.value = true
+  solitaireError.value = ''
+  solitaireInput.value = ''
+  solitaireState.value = ''
+  try {
+    let candidate = null
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const data = await request(`/api/poems/random?lang=${uiLang.value}`)
+      if (Array.isArray(data.data?.content) && data.data.content.length >= 2) {
+        candidate = data.data
+        break
+      }
+    }
+    if (!candidate) throw new Error(m.value.solitaireUnavailable)
+    solitairePoem.value = candidate
+    solitaireIndex.value = Math.floor(Math.random() * (candidate.content.length - 1))
+  } catch (_) {
+    solitaireError.value = m.value.solitaireUnavailable
+  } finally {
+    solitaireLoading.value = false
+  }
+}
+
+function submitSolitaire() {
+  if (!solitaireInput.value.trim()) {
+    solitaireState.value = 'empty'
+    return
+  }
+  const correct = normalizeVerse(solitaireInput.value) === normalizeVerse(solitaireAnswerLine.value)
+  solitaireState.value = correct ? 'correct' : 'wrong'
+  solitaireTotalCount.value++
+  if (correct) solitaireCorrectCount.value++
+  localStorage.setItem('poetry-solitaire-total', String(solitaireTotalCount.value))
+  localStorage.setItem('poetry-solitaire-correct', String(solitaireCorrectCount.value))
+}
+
+function revealSolitaire() {
+  solitaireState.value = 'revealed'
+}
+
+async function refreshSolitaireLanguage() {
+  if (!solitairePoem.value?.id) return
+  try {
+    const data = await request(`/api/poems/${solitairePoem.value.id}?lang=${uiLang.value}`)
+    solitairePoem.value = data.data
+  } catch (_) {}
+}
+
 async function changeUiLanguage() {
   document.documentElement.lang = uiLang.value
   localStorage.setItem('poetry-ui-lang', uiLang.value)
   poemLang.value = uiLang.value
   localStorage.setItem('poetry-poem-lang', poemLang.value)
   if (poem.value) await loadPoem(poem.value.id)
+  await refreshSolitaireLanguage()
 }
 async function setPoemLanguage(language) {
   if (poemLang.value === language) return
@@ -294,6 +369,7 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   updateStreak()
   ensureToday()
+  loadSolitaireQuestion()
   if (location.hash) setTimeout(() => scrollToSection(location.hash), 180)
 })
 
@@ -432,8 +508,34 @@ onBeforeUnmount(() => {
           <p class="section-kicker"><Gamepad2 :size="16" /> {{ m.games }}</p>
           <h2>{{ m.games }}</h2>
           <p>{{ m.gamesLead }}</p>
-          <div class="yaji-game-grid">
-            <article><Gamepad2 :size="24" /><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p><span>{{ m.preparing }}</span></article>
+          <article id="solitaire" class="solitaire-panel">
+            <div class="solitaire-head">
+              <div><span>{{ m.solitaireKicker }}</span><h3>{{ m.solitaire }}</h3><p>{{ m.solitaireDesc }}</p></div>
+              <small>{{ m.solitaireScore.replace('{correct}', solitaireCorrectCount).replace('{total}', solitaireTotalCount) }}</small>
+            </div>
+            <div v-if="solitaireLoading" class="solitaire-state"><RotateCw class="spin" :size="26" /><span>{{ m.loading }}</span></div>
+            <div v-else-if="solitaireError" class="solitaire-state"><span>{{ solitaireError }}</span><button @click="loadSolitaireQuestion">{{ m.retry }}</button></div>
+            <template v-else-if="solitairePoem">
+              <div class="solitaire-question"><small>{{ m.solitairePrompt }}</small><blockquote>{{ solitairePromptLine }}</blockquote></div>
+              <form class="solitaire-form" @submit.prevent="submitSolitaire">
+                <input v-model="solitaireInput" :placeholder="m.solitairePlaceholder" :disabled="solitaireState === 'correct' || solitaireState === 'revealed'" autocomplete="off" />
+                <button type="submit"><Send :size="16" /> {{ m.solitaireSubmit }}</button>
+              </form>
+              <div v-if="solitaireState" :class="['solitaire-feedback', solitaireState]">
+                <p v-if="solitaireState === 'correct'">{{ m.solitaireCorrect }}</p>
+                <p v-else-if="solitaireState === 'wrong'">{{ m.solitaireWrong }}</p>
+                <p v-else-if="solitaireState === 'empty'">{{ m.solitaireEmpty }}</p>
+                <template v-else><small>{{ m.solitaireAnswer }}</small><strong>{{ solitaireAnswerLine }}</strong></template>
+              </div>
+              <p class="solitaire-source">{{ solitaireSource }}</p>
+              <div class="solitaire-actions">
+                <button @click="revealSolitaire"><Eye :size="15" /> {{ m.solitaireReveal }}</button>
+                <button @click="loadSolitaireQuestion"><RefreshCw :size="15" /> {{ m.solitaireNext }}</button>
+                <a :href="`/?poem=${solitairePoem.id}`"><BookOpen :size="15" /> {{ m.openMain }}</a>
+              </div>
+            </template>
+          </article>
+          <div class="yaji-game-grid yaji-game-placeholders">
             <article><CircleHelp :size="24" /><h3>{{ m.riddle }}</h3><p>{{ m.riddleDesc }}</p><span>{{ m.preparing }}</span></article>
             <article><BookOpen :size="24" /><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p><span>{{ m.preparing }}</span></article>
           </div>
@@ -479,7 +581,7 @@ onBeforeUnmount(() => {
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.page }}</small><h3>{{ m.games }}</h3></div><button @click="gameSheetOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
       <button @click="scrollToSection('#games')"><CircleHelp :size="21"/><span><b>{{ m.riddle }}</b><small>{{ m.riddleDesc }}</small></span><i>{{ m.preparing }}</i></button>
-      <button @click="scrollToSection('#games')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
+      <button @click="scrollToSection('#solitaire')"><Gamepad2 :size="21"/><span><b>{{ m.solitaire }}</b><small>{{ m.solitaireDesc }}</small></span><i>{{ m.preparing }}</i></button>
       <button @click="scrollToSection('#games')"><BookOpen :size="21"/><span><b>{{ m.fill }}</b><small>{{ m.fillDesc }}</small></span><i>{{ m.preparing }}</i></button>
     </aside>
 
