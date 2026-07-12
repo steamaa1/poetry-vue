@@ -75,81 +75,176 @@ npm run build
 
 ## 部署说明
 
-项目使用 Vite 多页面构建，构建命令统一为：
+部署前先将本仓库 Fork 到自己的 GitHub 账号，或直接导入：
+
+```text
+https://github.com/steamaa1/chinese-poetry-vue
+```
+
+部署完成后请依次访问以下地址确认功能正常：
+
+```text
+https://你的域名/
+https://你的域名/yaji.html
+https://你的域名/api/stats
+```
+
+`/api/stats` 能返回 JSON 数据即表示 API 代理正常。
+
+### Cloudflare Pages
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)；
+2. 左侧进入 **Workers & Pages**；
+3. 点击 **Create application**；
+4. 选择 **Pages**；
+5. 点击 **Connect to Git**；
+6. 连接 GitHub，选择 `chinese-poetry-vue` 仓库；
+7. 在构建设置中填写：
+
+```text
+Production branch：main
+Framework preset：Vue
+Build command：npm run build
+Build output directory：dist
+Root directory：/
+```
+
+8. 环境变量保持为空；
+9. 点击 **Save and Deploy**；
+10. 等待构建完成，打开 Cloudflare 分配的 `pages.dev` 域名；
+11. 访问 `/api/stats`，确认返回诗词统计 JSON；
+12. 访问 `/yaji.html`，确认诗趣雅集可以打开。
+
+绑定自定义域名：
+
+1. 进入该 Pages 项目；
+2. 点击 **Custom domains**；
+3. 点击 **Set up a custom domain**；
+4. 输入自己的域名；
+5. 按页面提示确认 DNS 记录；
+6. 等待证书状态变为 **Active**。
+
+以后向 GitHub 的 `main` 分支推送代码，Cloudflare Pages 会自动重新部署。
+
+### Cloudflare Workers
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)；
+2. 左侧进入 **Workers & Pages**；
+3. 点击 **Create application**；
+4. 选择 **Import a repository**；
+5. 连接 GitHub，选择 `chinese-poetry-vue`；
+6. 项目名称可以保持 `chinese-poetry-vue`；
+7. Build command 填写：
+
+```text
+npm run build
+```
+
+8. Deploy command 填写：
+
+```text
+npx wrangler deploy
+```
+
+9. Root directory 保持仓库根目录；
+10. 环境变量保持为空；
+11. 点击 **Deploy**；
+12. 部署完成后打开分配的 `workers.dev` 域名；
+13. 访问 `/api/stats`，确认返回 JSON；
+14. 访问 `/yaji.html`，确认诗趣雅集可以打开。
+
+命令行部署方法：
 
 ```bash
 npm install
 npm run build
+npx wrangler login
+npx wrangler deploy
 ```
 
-构建产物位于 `dist/`，包含首页 `index.html` 与诗趣雅集 `yaji.html`。建议使用 Node.js 20 或更高版本，无需配置环境变量。
+绑定自定义域名：
 
-### Cloudflare Pages
-
-当前仓库对 Cloudflare Pages 的支持最完整，`functions/api/[[path]].js` 会被自动识别为 Pages Function，并为前端提供同源 `/api/*` 代理。
-
-- Framework preset：`Vue`
-- Build command：`npm run build`
-- Build output directory：`dist`
-- Root directory：`/`
-
-连接 GitHub 仓库并保存配置后即可部署，页面与 API 代理均可直接使用。
-
-### Cloudflare Workers
-
-可以使用 Workers Static Assets 托管 `dist/`，但当前的 `functions/api/[[path]].js` 属于 Pages Functions 格式，不能直接作为 Workers 入口使用。
-
-完整部署需要：
-
-1. 构建前端：`npm run build`；
-2. 将 `dist/` 配置为 Worker 静态资源目录；
-3. 把现有 Pages Function 代理逻辑迁移到 Worker 的 `fetch` 处理器；
-4. 在 Worker 中接管 `/api/*`，其他请求返回静态资源。
-
-如果仅发布 `dist/` 而不迁移代理，页面可以打开，但依赖 `/api/*` 的诗词功能不可用。
+1. 进入 Worker 项目；
+2. 打开 **Settings**；
+3. 进入 **Domains & Routes**；
+4. 点击 **Add**；
+5. 选择 **Custom Domain**；
+6. 输入域名并确认。
 
 ### Vercel
 
-导入 GitHub 仓库后使用以下配置：
+1. 登录 [Vercel](https://vercel.com/)；
+2. 点击 **Add New**；
+3. 选择 **Project**；
+4. 在 GitHub 仓库列表中找到 `chinese-poetry-vue`；
+5. 点击 **Import**；
+6. 在项目配置页确认：
 
-- Framework preset：`Vite`
-- Build command：`npm run build`
-- Output directory：`dist`
-- Install command：`npm install`
+```text
+Framework Preset：Vite
+Root Directory：./
+Build Command：npm run build
+Output Directory：dist
+Install Command：npm install
+Node.js Version：20.x 或更高
+```
 
-当前 Cloudflare Pages Function 不会被 Vercel 执行。要保留完整诗词功能，需要新增 Vercel Function，在 `/api/*` 路径下实现与 `functions/api/[[path]].js` 相同的上游代理与超时重试逻辑。
+7. Environment Variables 保持为空；
+8. 点击 **Deploy**；
+9. 部署完成后打开 Vercel 分配的域名；
+10. 访问 `/api/stats`，确认返回 JSON；
+11. 访问 `/yaji.html`，确认诗趣雅集可以打开。
 
-仅部署前端时，静态页面可以访问，但 API 功能不可用。
+绑定自定义域名：
+
+1. 进入 Vercel 项目；
+2. 点击 **Settings**；
+3. 点击 **Domains**；
+4. 输入自己的域名；
+5. 点击 **Add**；
+6. 按页面提示添加或修改 DNS 记录；
+7. 等待域名状态显示配置成功。
+
+以后向 GitHub 的 `main` 分支推送代码，Vercel 会自动重新部署。
 
 ### Netlify
 
-导入 GitHub 仓库后使用以下配置：
+1. 登录 [Netlify](https://app.netlify.com/)；
+2. 点击 **Add new site**；
+3. 选择 **Import an existing project**；
+4. 选择 **Deploy with GitHub**；
+5. 授权后选择 `chinese-poetry-vue` 仓库；
+6. 在构建配置中确认：
 
-- Build command：`npm run build`
-- Publish directory：`dist`
-- Base directory：留空或使用仓库根目录
+```text
+Base directory：留空
+Build command：npm run build
+Publish directory：dist
+Functions directory：netlify/functions
+```
 
-当前 Cloudflare Pages Function 不会被 Netlify 执行。完整部署需要新增 Netlify Function，并通过重写规则将 `/api/*` 转发到该 Function。
+7. 环境变量保持为空；
+8. 点击 **Deploy chinese-poetry-vue**；
+9. 等待部署完成，打开 Netlify 分配的域名；
+10. 访问 `/api/stats`，确认返回 JSON；
+11. 访问 `/yaji.html`，确认诗趣雅集可以打开。
 
-仅发布 `dist/` 时，静态页面可以访问，但依赖 API 的功能不可用。
+绑定自定义域名：
+
+1. 进入 Netlify 站点；
+2. 点击 **Domain management**；
+3. 点击 **Add a domain**；
+4. 选择 **Add a domain you already own**；
+5. 输入域名并确认；
+6. 按页面提示配置 DNS；
+7. 等待 HTTPS 证书签发完成。
+
+以后向 GitHub 的 `main` 分支推送代码，Netlify 会自动重新部署。
 
 ## 数据来源
 
 - API：[诗泉](https://poetry.palemoky.com/)
 - 项目：[palemoky/chinese-poetry-api](https://github.com/palemoky/chinese-poetry-api)
-
-## API 代理
-
-当前仓库内置的是 Cloudflare Pages Functions 实现：`functions/api/[[path]].js`。它将同源 `/api/*` 请求代理到诗泉 API，避免浏览器受到第三方接口 CORS 限制。
-
-使用 Cloudflare Workers、Vercel 或 Netlify 时，需要按上方部署说明将这段代理逻辑迁移到对应平台的服务端函数格式。
-
-### 超时与重试
-
-- 浏览器端 API 请求超时为 10 秒。
-- 服务端代理请求诗泉的超时为 10 秒。
-- 网络错误、HTTP 408、429 与 5xx 错误最多自动重试 2 次，并采用递增等待时间。
-- 参数错误、权限错误、404 等确定性错误不会重试。
 
 ---
 
