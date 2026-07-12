@@ -15,8 +15,10 @@ const results = ref([])
 const searched = ref(false)
 const searching = ref(false)
 const searchMessage = ref('')
-const uiLang = ref('zh-Hans')
-const poemLang = ref('zh-Hans')
+const savedUiLang = localStorage.getItem('poetry-ui-lang')
+const savedPoemLang = localStorage.getItem('poetry-poem-lang')
+const uiLang = ref(savedUiLang === 'zh-Hant' ? 'zh-Hant' : 'zh-Hans')
+const poemLang = ref(['zh-Hans', 'zh-Hant'].includes(savedPoemLang) ? savedPoemLang : uiLang.value)
 const dynasty = ref('')
 const type = ref('')
 const dynasties = ref([])
@@ -133,7 +135,6 @@ async function moveHistory(step) {
     const targetId = poemHistory.value[targetIndex]
     await loadPoemById(targetId)
     historyIndex.value = targetIndex
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (_) {
     error.value = m.value.neighborFailed
   } finally {
@@ -164,7 +165,6 @@ async function searchPoems() {
 function showPoem(p) {
   recordPoem(p)
   searched.value = false
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function toggleFavorite() {
@@ -183,6 +183,7 @@ async function copyPoem() {
 async function setPoemLang(nextLang) {
   if (poemLang.value === nextLang || !poem.value?.id) return
   poemLang.value = nextLang
+  localStorage.setItem('poetry-poem-lang', nextLang)
   loading.value = true
   error.value = ''
   try {
@@ -197,7 +198,9 @@ async function setPoemLang(nextLang) {
 
 async function changeUiLang() {
   document.documentElement.lang = uiLang.value
+  localStorage.setItem('poetry-ui-lang', uiLang.value)
   poemLang.value = uiLang.value
+  localStorage.setItem('poetry-poem-lang', poemLang.value)
   dynasty.value = ''
   type.value = ''
   searchMessage.value = ''
@@ -226,6 +229,8 @@ async function loadFilters() {
 
 onMounted(() => {
   document.documentElement.lang = uiLang.value
+  localStorage.setItem('poetry-ui-lang', uiLang.value)
+  localStorage.setItem('poetry-poem-lang', poemLang.value)
   return Promise.all([randomPoem(), loadFilters()])
 })
 </script>
