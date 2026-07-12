@@ -15,3 +15,9 @@ html[lang=zh-Hant] .poem-body h2,html[lang=zh-Hant] .card-signature b{font-famil
 
 @media(max-width:800px){.daily-layout{grid-template-columns:1fr;max-width:680px}.daily-stage{min-height:0;padding:20px 0 35px}.poem-card{width:min(480px,100%)}.calendar{position:static}.daily-sun{right:-25px}.daily-mountain{bottom:0}}
 @media(max-width:480px){.daily-layout{width:calc(100% - 24px)}.daily-stage{overflow:visible}.poem-card{width:100%;min-height:0;padding:25px 22px}.poem-body{margin:38px 0}.poem-body h2{font-size:26px;line-height:1.5}.verses p{font-size:15px;line-height:1.8;letter-spacing:.03em}.tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.tools button,.tools a,.tools select{width:100%;max-width:none;min-height:35px;border:1px solid var(--line);justify-content:center;text-align:center}.card-bottom{margin-top:4px}}
+
+.spin{animation:yaji-spin 1s linear infinite}@keyframes yaji-spin{to{transform:rotate(360deg)}}
+.yaji-shell[lang="zh-Hant"] .poem-body h2,.yaji-shell[lang="zh-Hant"] .card-signature b,.yaji-shell[lang="zh-Hant"] .games h2,.yaji-shell[lang="zh-Hant"] .game h3{font-family:'Noto Serif TC',serif;font-weight:600}
+.menu-panel button{width:100%;display:block;padding:13px;border:0;border-bottom:1px solid var(--line);background:transparent;color:inherit;text-align:left}
+.actions label{height:38px;display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:rgba(255,255,255,.35);padding:0 8px}.actions label select{height:auto;border:0;background:transparent;padding:0}
+.tools button,.tools a{gap:4px}.state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px}.state button{padding:8px 14px;border:1px solid var(--line);background:transparent}

@@ -107,12 +107,15 @@ npm run build
 
 访问 [`/yaji.html`](/yaji.html) 进入独立的诗趣雅集页面。该页面包含带月历与连续阅读记录的每日一诗，并为“联句续章”“诗谜寻踪”“补阙成章”等互动功能预留入口。
 
-雅集页面由以下独立静态文件组成：
+雅集页面使用 Vue 3 + Vite 多页面入口实现：
 
-- `public/yaji.html`
-- `public/yaji.css`
-- `public/yaji.js`
-- `public/locales/yaji-zh-Hant.js`
+- `yaji.html`：Vite 雅集页面入口
+- `src/yaji/main.js`：Vue 挂载入口
+- `src/yaji/YajiApp.vue`：每日一诗、月历与互动页面组件
+- `src/yaji/style.css`：雅集页面样式
+- `src/yaji/locales/zh-Hant.js`：繁体中文语言包
+
+`vite.config.js` 同时构建 `index.html` 与 `yaji.html`，部署后仍通过 `/yaji.html` 访问。
 
 ---
 
