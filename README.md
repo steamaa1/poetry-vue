@@ -40,3 +40,7 @@ npm run build
 
 - API：[诗泉](https://poetry.palemoky.com/)
 - 项目：[palemoky/chinese-poetry-api](https://github.com/palemoky/chinese-poetry-api)
+
+## API 代理
+
+生产环境通过 `functions/api/[[path]].js` 将同源 `/api/*` 请求代理到诗泉 API，避免浏览器受到第三方接口 CORS 限制。Cloudflare Pages 部署时会自动识别该 Functions 目录，无需额外环境变量。

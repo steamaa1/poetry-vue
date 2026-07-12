@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Search, Shuffle, Heart, Copy, Check, Github, Languages, ChevronDown, X, BookOpen, Sparkles, RotateCw } from 'lucide-vue-next'
 
-const API = 'https://poetry.palemoky.com'
+const API = ''
 const poem = ref(null)
 const loading = ref(true)
 const error = ref('')
