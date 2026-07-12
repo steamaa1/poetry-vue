@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="诗笺">
+  <defs>
+    <filter id="paper" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="8" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="softNoise">
+        <feFuncA type="table" tableValues="0 0.07"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="softNoise" mode="multiply"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#f7f4ec"/>
+  <rect x="82" y="82" width="348" height="348" rx="34" fill="#a83e32" filter="url(#paper)"/>
+  <rect x="95" y="95" width="322" height="322" rx="24" fill="none" stroke="#f7eee4" stroke-opacity=".35" stroke-width="5"/>
+  <text x="256" y="337" text-anchor="middle" fill="#fffaf0" font-size="226" font-weight="600" font-family="Noto Serif SC, Noto Serif TC, STSong, SimSun, serif">诗</text>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "name": "诗笺 · 中国古典诗词",
+  "short_name": "诗笺",
+  "description": "从诗泉撷取中国古典诗词，支持寻诗、收藏、分享与简繁对照。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#a83e32",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
