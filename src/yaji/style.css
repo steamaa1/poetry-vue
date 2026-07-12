@@ -288,3 +288,6 @@
     white-space: nowrap;
   }
 }
+
+/* “随阅”直接定位当前每日诗笺，并为底部导航预留舒适间距。 */
+#daily-sheet { scroll-margin-top: 18px; }

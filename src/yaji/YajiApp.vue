@@ -387,7 +387,7 @@ onBeforeUnmount(() => {
           <p class="reading-streak">{{ m.streak.replace('{count}', streak) }}</p>
         </aside>
 
-        <div class="poem-stage yaji-poem-stage">
+        <div id="daily-sheet" class="poem-stage yaji-poem-stage">
           <span class="sun"></span>
           <span class="mountain m1"></span>
           <span class="mountain m2"></span>
@@ -495,7 +495,7 @@ onBeforeUnmount(() => {
 
     <nav class="mobile-bottom-nav yaji-bottom-nav" :aria-label="m.games">
       <button @click="scrollToSection('#daily')"><CalendarDays :size="20" /><span>{{ m.navDaily }}</span></button>
-      <a href="/"><Home :size="20" /><span>{{ m.navHome }}</span></a>
+      <button @click="scrollToSection('#daily-sheet')"><Home :size="20" /><span>{{ m.navHome }}</span></button>
       <button :class="{ active: gameSheetOpen }" @click="gameSheetOpen = true"><Gamepad2 :size="20" /><span>{{ m.navGames }}</span></button>
     </nav>
 
