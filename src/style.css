@@ -1156,3 +1156,34 @@ main > section:not(:first-child)::after {
   .reading-tools > button { min-height:36px; padding:0 9px; font-size:9px; }
   .dictionary-hint { padding:0 8px; line-height:1.6; }
 }
+
+/* 诗笺工具按钮统一方框样式 */
+.poem-language .dictionary-button,
+.poem-language .fullscreen-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line) !important;
+  border-radius: 2px;
+  background: rgba(255,255,255,.32);
+  color: var(--muted);
+}
+.poem-language .dictionary-button:hover,
+.poem-language .fullscreen-button:hover {
+  color: var(--red);
+  border-color: rgba(168,62,50,.35) !important;
+  background: rgba(168,62,50,.045);
+}
+.poem-language .dictionary-button.active {
+  color: #fff !important;
+  border-color: var(--green) !important;
+  background: var(--green) !important;
+}
+
+@media(max-width:540px){
+  .poem-language .dictionary-button,
+  .poem-language .fullscreen-button {
+    flex: 1;
+    min-height: 34px;
+    padding: 0 8px;
+  }
+}
