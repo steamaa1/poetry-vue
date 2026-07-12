@@ -372,3 +372,34 @@
   .solitaire-actions a { grid-column: 1 / 3; }
   .yaji-game-placeholders { grid-template-columns: 1fr; }
 }
+
+/* 补阙成章未开始状态 */
+.solitaire-start {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--green);
+  text-align: center;
+}
+
+.solitaire-start p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.solitaire-start button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 20px;
+  border: 0;
+  background: var(--red);
+  color: white;
+}

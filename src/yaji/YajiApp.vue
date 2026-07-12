@@ -23,7 +23,7 @@ const zhHans = {
   games: '诗词雅戏', gamesLead: '以诗为戏，在字句之间温故知新。',
   solitaire: '联句续章', solitaireDesc: '承前句余韵，续写下一章',
   solitaireKicker: '补阙成章', solitairePrompt: '请补全下一句', solitairePlaceholder: '写下缺落的下一句…',
-  solitaireSubmit: '补句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '补句无误，诗章复原。',
+  solitaireStart: '启卷补阙', solitaireStartDesc: '展开一卷诗章，补回缺落的下一句。', solitaireSubmit: '补句', solitaireReveal: '揭晓', solitaireNext: '再来一题', solitaireCorrect: '补句无误，诗章复原。',
   solitaireOneOff: '尚有一字之差，再想想。', solitaireNear: '已有几分相近，仍有数处不同。', solitaireFar: '与原句相去较远，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
   solitaireUnavailable: '暂时未寻到合适的联句，请再试一次。', solitaireScore: '答对 {correct} / 已答 {total}', solitaireEmpty: '请先写下下一句。',
   riddle: '诗谜寻踪', riddleDesc: '隐去诗题或诗人，循字句猜其来处',
@@ -59,6 +59,7 @@ const copied = ref(false)
 const shared = ref(false)
 const generating = ref(false)
 const gameSheetOpen = ref(false)
+const solitaireStarted = ref(false)
 const solitairePoem = ref(null)
 const solitaireIndex = ref(0)
 const solitaireInput = ref('')
@@ -323,6 +324,7 @@ function solitaireWrongMessage() {
 
 async function loadSolitaireQuestion() {
   if (solitaireLoading.value) return
+  solitaireStarted.value = true
   solitaireLoading.value = true
   solitaireError.value = ''
   solitaireInput.value = ''
@@ -399,7 +401,6 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   updateStreak()
   ensureToday()
-  loadSolitaireQuestion()
   if (location.hash) setTimeout(() => scrollToSection(location.hash), 180)
 })
 
@@ -543,7 +544,12 @@ onBeforeUnmount(() => {
               <div><span>{{ m.solitaireKicker }}</span><h3>{{ m.fill }}</h3><p>{{ m.fillDesc }}</p></div>
               <small>{{ m.solitaireScore.replace('{correct}', solitaireCorrectCount).replace('{total}', solitaireTotalCount) }}</small>
             </div>
-            <div v-if="solitaireLoading" class="solitaire-state"><RotateCw class="spin" :size="26" /><span>{{ m.loading }}</span></div>
+            <div v-if="!solitaireStarted" class="solitaire-start">
+              <BookOpen :size="34" />
+              <p>{{ m.solitaireStartDesc }}</p>
+              <button @click="loadSolitaireQuestion"><BookOpen :size="17" /> {{ m.solitaireStart }}</button>
+            </div>
+            <div v-else-if="solitaireLoading" class="solitaire-state"><RotateCw class="spin" :size="26" /><span>{{ m.loading }}</span></div>
             <div v-else-if="solitaireError" class="solitaire-state"><span>{{ solitaireError }}</span><button @click="loadSolitaireQuestion">{{ m.retry }}</button></div>
             <template v-else-if="solitairePoem">
               <div class="solitaire-question"><small>{{ m.solitairePrompt }}</small><blockquote>{{ solitairePromptLine }}</blockquote></div>

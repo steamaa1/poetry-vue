@@ -54,7 +54,7 @@ export const yajiZhHant = {
   games: '詩詞雅戲', gamesLead: '以詩為戲，在字句之間溫故知新。',
   solitaire: '聯句續章', solitaireDesc: '承前句餘韻，續寫下一章',
   solitaireKicker: '補闕成章', solitairePrompt: '請補全下一句', solitairePlaceholder: '寫下缺落的下一句…',
-  solitaireSubmit: '補句', solitaireReveal: '揭曉', solitaireNext: '再來一題', solitaireCorrect: '補句無誤，詩章復原。',
+  solitaireStart: '啟卷補闕', solitaireStartDesc: '展開一卷詩章，補回缺落的下一句。', solitaireSubmit: '補句', solitaireReveal: '揭曉', solitaireNext: '再來一題', solitaireCorrect: '補句無誤，詩章復原。',
   solitaireOneOff: '尚有一字之差，再想想。', solitaireNear: '已有幾分相近，仍有數處不同。', solitaireFar: '與原句相去較遠，再想想。', solitaireAnswer: '原句', solitaireSource: '出自《{title}》 · {author}',
   solitaireUnavailable: '暫時未尋到合適的聯句，請再試一次。', solitaireScore: '答對 {correct} / 已答 {total}', solitaireEmpty: '請先寫下下一句。',
   riddle: '詩謎尋蹤', riddleDesc: '隱去詩題或詩人，循字句猜其來處',
