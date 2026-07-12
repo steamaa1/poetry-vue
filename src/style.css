@@ -1291,3 +1291,63 @@ main > section:not(:first-child)::after {
 @media(max-width:850px){
   .site-directory-menu { display:none !important; }
 }
+
+/* 诗趣雅集父目录与子目录层级 */
+.directory-group-title {
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 24px 1fr 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(168,62,50,.025);
+  color: var(--red);
+  text-align: left;
+}
+.directory-group-title > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+}
+.directory-group-title b { color: var(--ink); font-size: 13px; letter-spacing: .08em; }
+.directory-group-title small { color: var(--muted); font-size: 9px; }
+.directory-group-title > svg:last-child { transition: transform .2s ease; }
+.directory-group-title > svg.rotated { transform: rotate(180deg); }
+.directory-future-list { margin-left: 16px; padding-left: 16px; border-left: 1px solid rgba(73,101,90,.2); }
+.directory-future-list:before { display: none; }
+.directory-future-list > div:before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 12px;
+  height: 1px;
+  background: rgba(73,101,90,.2);
+}
+
+.mobile-directory-title {
+  width: 100%;
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 26px 1fr 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: rgba(168,62,50,.025);
+  color: var(--red);
+  text-align: left;
+}
+.mobile-directory-title > span { display: flex; flex-direction: column; gap: 4px; }
+.mobile-directory-title b { color: var(--ink); font-size: 14px; }
+.mobile-directory-title small { color: var(--muted); font-size: 9px; }
+.mobile-directory-title > svg:last-child { transition: transform .2s ease; }
+.mobile-directory-title > svg.rotated { transform: rotate(180deg); }
+.mobile-future-items { margin-left: 22px; padding-left: 10px; border-left: 1px solid rgba(73,101,90,.2); }
+.mobile-future-items > div { position: relative; }
+.mobile-future-items > div:before { content:""; position:absolute; left:-10px; top:50%; width:8px; height:1px; background:rgba(73,101,90,.2); }

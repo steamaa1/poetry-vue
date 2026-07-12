@@ -32,7 +32,7 @@ const zhHant = {
     currentPageOnly: '僅篩選當前頁',
     statsMenuDesc: '縱覽詩詞、作者與朝代', poemsMenuDesc: '按卷瀏覽古典詩詞', authorsMenuDesc: '循名訪問歷代詩人', dynastiesMenuDesc: '沿時間軸遍覽歷代風華', typesMenuDesc: '認識詩詞體裁與格律',
     mobileNavHome: '詩箋', mobileNavSearch: '尋章', mobileNavSea: '詩海', mobileNavFavorite: '收藏', closeMenu: '關閉選單',
-    siteDirectory: '詩箋目錄', directoryHome: '首頁', directoryHomeDesc: '返回包含當前全部功能的詩箋首頁', elegantGathering: '詩趣雅集', elegantGatheringDesc: '每日一詩與詩詞互動合集', preparing: '籌備中',
+    siteDirectory: '詩箋目錄', directoryHome: '詩箋隨閱', directoryHomeDesc: '首頁', elegantGathering: '詩趣雅集', elegantGatheringDesc: '每日一詩與詩詞互動合集', preparing: '籌備中',
     dailyPoem: '每日一詩', dailyPoemDesc: '每天固定相逢一首詩', poetrySolitaire: '詩詞接龍', guessPoet: '猜詩人', guessTitle: '猜詩名', verseFill: '詩句填空', interactionDesc: '詩詞互動挑戰', projectSource: '項目源碼',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }

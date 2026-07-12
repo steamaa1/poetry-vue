@@ -70,6 +70,7 @@ const mobileSeaOpen = ref(false)
 const mobileSearchOpen = ref(false)
 const siteMenuOpen = ref(false)
 const mobileSiteOpen = ref(false)
+const elegantMenuOpen = ref(true)
 let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
@@ -105,7 +106,7 @@ const zhHans = {
     currentPageOnly: '仅筛选当前页',
     statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人', dynastiesMenuDesc: '沿时间轴遍览历代风华', typesMenuDesc: '认识诗词体裁与格律',
     mobileNavHome: '诗笺', mobileNavSearch: '寻章', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
-    siteDirectory: '诗笺目录', directoryHome: '首页', directoryHomeDesc: '返回包含当前全部功能的诗笺首页', elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集', preparing: '筹备中',
+    siteDirectory: '诗笺目录', directoryHome: '诗笺随阅', directoryHomeDesc: '首页', elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集', preparing: '筹备中',
     dailyPoem: '每日一诗', dailyPoemDesc: '每天固定相逢一首诗', poetrySolitaire: '诗词接龙', guessPoet: '猜诗人', guessTitle: '猜诗名', verseFill: '诗句填空', interactionDesc: '诗词互动挑战', projectSource: '项目源码',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
@@ -858,8 +859,8 @@ onBeforeUnmount(() => {
           <div v-show="siteMenuOpen" class="site-directory-menu" role="menu" @click.stop>
             <div class="directory-heading"><small>{{ m.siteDirectory }}</small><b>{{ m.brand }}</b></div>
             <button class="directory-home" role="menuitem" @click="goHome"><Home :size="20"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="16"/></button>
-            <div class="directory-group-title"><span>{{ m.elegantGathering }}</span><small>{{ m.elegantGatheringDesc }}</small></div>
-            <div class="directory-future-list">
+            <button class="directory-group-title" @click="elegantMenuOpen = !elegantMenuOpen" :aria-expanded="elegantMenuOpen"><Gamepad2 :size="18"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronDown :size="15" :class="{rotated:elegantMenuOpen}"/></button>
+            <div v-show="elegantMenuOpen" class="directory-future-list">
               <div><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
               <div><Gamepad2 :size="17"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
               <div><CircleHelp :size="17"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
@@ -1089,8 +1090,8 @@ onBeforeUnmount(() => {
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.brand }}</small><h3>{{ m.siteDirectory }}</h3></div><button @click="mobileSiteOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
       <button @click="goHome"><Home :size="21"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="17"/></button>
-      <div class="mobile-directory-title"><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></div>
-      <div class="mobile-future-items">
+      <button class="mobile-directory-title" @click="elegantMenuOpen = !elegantMenuOpen" :aria-expanded="elegantMenuOpen"><Gamepad2 :size="19"/><span><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></span><ChevronDown :size="16" :class="{rotated:elegantMenuOpen}"/></button>
+      <div v-show="elegantMenuOpen" class="mobile-future-items">
         <div><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
         <div><Gamepad2 :size="18"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
         <div><CircleHelp :size="18"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
