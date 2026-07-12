@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import zhHant from './locales/zh-Hant.js'
 import {
   Search, Shuffle, Heart, Copy, Check, Share2, ExternalLink, ImageDown, Github, Languages, ChevronDown,
-  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2
+  ChevronLeft, ChevronRight, X, BookOpen, Sparkles, RotateCw, Info, BarChart3, Waves, Users, UserRound, SearchX, Home, Bookmark, CheckCircle2, Landmark, LibraryBig, Flower2, Maximize2, Minimize2, Menu, CalendarDays, Gamepad2, CircleHelp
 } from 'lucide-vue-next'
 
 const API = ''
@@ -68,6 +68,8 @@ const seaMenuOpen = ref(false)
 const searchMenuOpen = ref(false)
 const mobileSeaOpen = ref(false)
 const mobileSearchOpen = ref(false)
+const siteMenuOpen = ref(false)
+const mobileSiteOpen = ref(false)
 let seaMenuTimer = null
 
 // 简体中文为默认语言，直接嵌入组件。
@@ -102,7 +104,9 @@ const zhHans = {
     filterCurrentAuthors: '筛选本页诗人', noAuthors: '本页没有符合条件的诗人。', randomByAuthor: '随机读一首', authorProfile: '查询生平', authorLoading: '正在寻诗…',
     currentPageOnly: '仅筛选当前页',
     statsMenuDesc: '纵览诗词、作者与朝代', poemsMenuDesc: '按卷浏览古典诗词', authorsMenuDesc: '循名访问历代诗人', dynastiesMenuDesc: '沿时间轴遍览历代风华', typesMenuDesc: '认识诗词体裁与格律',
-    mobileNavHome: '诗笺', mobileNavSearch: '寻诗', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
+    mobileNavHome: '诗笺', mobileNavSearch: '寻章', mobileNavSea: '诗海', mobileNavFavorite: '收藏', closeMenu: '关闭菜单',
+    siteDirectory: '诗笺目录', directoryHome: '首页', directoryHomeDesc: '返回包含当前全部功能的诗笺首页', elegantGathering: '诗趣雅集', elegantGatheringDesc: '每日一诗与诗词互动合集', preparing: '筹备中',
+    dailyPoem: '每日一诗', dailyPoemDesc: '每天固定相逢一首诗', poetrySolitaire: '诗词接龙', guessPoet: '猜诗人', guessTitle: '猜诗名', verseFill: '诗句填空', interactionDesc: '诗词互动挑战', projectSource: '项目源码',
   simplifiedChinese: '简体中文', traditionalChinese: '繁體中文', simplifiedShort: '简体', traditionalShort: '繁體'
 }
 
@@ -636,6 +640,22 @@ function closeNavigationMenus() {
   searchMenuOpen.value = false
   mobileSeaOpen.value = false
   mobileSearchOpen.value = false
+  siteMenuOpen.value = false
+  mobileSiteOpen.value = false
+}
+
+function toggleSiteDirectory() {
+  if (window.innerWidth <= 850) {
+    mobileSiteOpen.value = true
+    siteMenuOpen.value = false
+  } else {
+    siteMenuOpen.value = !siteMenuOpen.value
+  }
+}
+
+function goHome() {
+  closeNavigationMenus()
+  window.location.href = '/'
 }
 
 async function goToSection(selector) {
@@ -657,6 +677,7 @@ function handleNavigationKey(event) {
 
 function handleNavigationClick(event) {
   if (!event.target.closest('.nav-dropdown')) { seaMenuOpen.value = false; searchMenuOpen.value = false }
+  if (!event.target.closest('.site-directory')) siteMenuOpen.value = false
 }
 
 async function openSeaTab(tab) {
@@ -832,7 +853,22 @@ onBeforeUnmount(() => {
           </select>
           <ChevronDown :size="13" />
         </div>
-        <a class="icon-button" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener" :title="m.myProject"><Github :size="19" /></a>
+        <div class="site-directory">
+          <button class="icon-button" @click="toggleSiteDirectory" :title="m.siteDirectory" aria-haspopup="menu" :aria-expanded="siteMenuOpen"><Menu :size="20" /></button>
+          <div v-show="siteMenuOpen" class="site-directory-menu" role="menu" @click.stop>
+            <div class="directory-heading"><small>{{ m.siteDirectory }}</small><b>{{ m.brand }}</b></div>
+            <button class="directory-home" role="menuitem" @click="goHome"><Home :size="20"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="16"/></button>
+            <div class="directory-group-title"><span>{{ m.elegantGathering }}</span><small>{{ m.elegantGatheringDesc }}</small></div>
+            <div class="directory-future-list">
+              <div><CalendarDays :size="17"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><Gamepad2 :size="17"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><CircleHelp :size="17"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><CircleHelp :size="17"/><span><b>{{ m.guessTitle }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+              <div><BookOpen :size="17"/><span><b>{{ m.verseFill }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+            </div>
+            <a class="directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="16"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -1048,7 +1084,22 @@ onBeforeUnmount(() => {
       <button @click="goToSection(favorites.length ? '#favorites' : '#today')"><Bookmark :size="20"/><span>{{ m.mobileNavFavorite }}</span><i v-if="favorites.length">{{ favorites.length }}</i></button>
     </nav>
 
-    <div v-if="mobileSeaOpen || mobileSearchOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
+    <div v-if="mobileSeaOpen || mobileSearchOpen || mobileSiteOpen" class="mobile-menu-backdrop" @click="closeNavigationMenus"></div>
+    <aside :class="['mobile-sea-sheet','mobile-directory-sheet',{open:mobileSiteOpen}]" :aria-hidden="!mobileSiteOpen">
+      <div class="mobile-sheet-handle"></div>
+      <div class="mobile-sheet-head"><div><small>{{ m.brand }}</small><h3>{{ m.siteDirectory }}</h3></div><button @click="mobileSiteOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
+      <button @click="goHome"><Home :size="21"/><span><b>{{ m.directoryHome }}</b><small>{{ m.directoryHomeDesc }}</small></span><ChevronRight :size="17"/></button>
+      <div class="mobile-directory-title"><b>{{ m.elegantGathering }}</b><small>{{ m.elegantGatheringDesc }}</small></div>
+      <div class="mobile-future-items">
+        <div><CalendarDays :size="18"/><span><b>{{ m.dailyPoem }}</b><small>{{ m.dailyPoemDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><Gamepad2 :size="18"/><span><b>{{ m.poetrySolitaire }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><CircleHelp :size="18"/><span><b>{{ m.guessPoet }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><CircleHelp :size="18"/><span><b>{{ m.guessTitle }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+        <div><BookOpen :size="18"/><span><b>{{ m.verseFill }}</b><small>{{ m.interactionDesc }}</small></span><i>{{ m.preparing }}</i></div>
+      </div>
+      <a class="mobile-directory-source" href="https://github.com/steamaa1/chinese-poetry-vue" target="_blank" rel="noopener"><Github :size="17"/> {{ m.projectSource }} <ExternalLink :size="13"/></a>
+    </aside>
+
     <aside :class="['mobile-sea-sheet','mobile-search-sheet',{open:mobileSearchOpen}]" :aria-hidden="!mobileSearchOpen">
       <div class="mobile-sheet-handle"></div>
       <div class="mobile-sheet-head"><div><small>{{ m.searchKicker }}</small><h3>{{ m.searchMenuTitle }}</h3></div><button @click="mobileSearchOpen = false" :aria-label="m.closeMenu"><X :size="20"/></button></div>
