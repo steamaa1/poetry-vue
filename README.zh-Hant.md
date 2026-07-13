@@ -1,8 +1,14 @@
-# 詩箋 Chinese Poetry Vue
-
-[简体中文（默认）](README.md) | [繁體中文](README.zh-Hant.md) | [English](README.en.md)
-
-一款基於 Vue 3、Vite 與[詩泉 API](https://poetry.palemoky.com/) 開發的中國古典詩詞網頁。
+<div align="center">
+  <img src="public/favicon.svg" width="96" height="96" alt="詩箋 Logo">
+  <h1>詩箋</h1>
+  <p><sub>Chinese Poetry Vue</sub></p>
+  <p>
+    <a href="README.md">简体中文（默认）</a> |
+    <a href="README.zh-Hant.md">繁體中文</a> |
+    <a href="README.en.md">English</a>
+  </p>
+  <p>一款基於 Vue 3、Vite 與<a href="https://poetry.palemoky.com/">詩泉 API</a> 開發的中國古典詩詞網頁。</p>
+</div>
 
 ## 功能說明
 

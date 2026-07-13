@@ -1,6 +1,7 @@
 <div align="center">
   <img src="public/favicon.svg" width="96" height="96" alt="诗笺 Logo">
-  <h1>诗笺 Chinese Poetry Vue</h1>
+  <h1>诗笺</h1>
+  <p><sub>Chinese Poetry Vue</sub></p>
   <p>
     <a href="README.md">简体中文（默认）</a> |
     <a href="README.zh-Hant.md">繁體中文</a> |

@@ -1,8 +1,14 @@
-# Poetry Letter · Chinese Poetry Vue
-
-[Simplified Chinese (default)](README.md) | [Traditional Chinese](README.zh-Hant.md) | [English](README.en.md)
-
-A responsive Chinese classical poetry website built with Vue 3, Vite, and the [Poetry Spring API](https://poetry.palemoky.com/).
+<div align="center">
+  <img src="public/favicon.svg" width="96" height="96" alt="Poetry Letter Logo">
+  <h1>Poetry Letter</h1>
+  <p><sub>Chinese Poetry Vue</sub></p>
+  <p>
+    <a href="README.md">Simplified Chinese (default)</a> |
+    <a href="README.zh-Hant.md">Traditional Chinese</a> |
+    <a href="README.en.md">English</a>
+  </p>
+  <p>A responsive Chinese classical poetry website built with Vue 3, Vite, and the <a href="https://poetry.palemoky.com/">Poetry Spring API</a>.</p>
+</div>
 
 ## Features
 
