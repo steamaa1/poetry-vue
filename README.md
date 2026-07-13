@@ -1,8 +1,13 @@
-# 诗笺 Chinese Poetry Vue
-
-[简体中文（默认）](README.md) | [繁體中文](README.zh-Hant.md) | [English](README.en.md)
-
-一款基于 Vue 3、Vite 与[诗泉 API](https://poetry.palemoky.com/)开发的中国古典诗词网页。
+<div align="center">
+  <img src="public/favicon.svg" width="96" height="96" alt="诗笺 Logo">
+  <h1>诗笺 Chinese Poetry Vue</h1>
+  <p>
+    <a href="README.md">简体中文（默认）</a> |
+    <a href="README.zh-Hant.md">繁體中文</a> |
+    <a href="README.en.md">English</a>
+  </p>
+  <p>一款基于 Vue 3、Vite 与<a href="https://poetry.palemoky.com/">诗泉 API</a>开发的中国古典诗词网页。</p>
+</div>
 
 ## 功能说明
 
